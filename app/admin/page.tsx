@@ -3,41 +3,94 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/card';
 import { Skeleton } from '@/components/skeleton';
+import { useToast } from '@/components/toast';
+
+interface Inquiry {
+  id: string;
+  phone_number: string;
+  customer_name: string;
+  message: string;
+  status: string;
+  created_at: string;
+}
 
 export default function AdminDashboard() {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [statsData, setStatsData] = useState({
+    totalStudents: '0',
+    pendingLeads: '0',
+    messagesToday: '0',
+    conversionRate: '0%',
+  });
+  const [recentInquiries, setRecentInquiries] = useState<Inquiry[]>([]);
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/admin/stats');
+      const data = await res.json();
+      if (data.success) {
+        setStatsData(data.stats);
+        setRecentInquiries(data.recentInquiries);
+      }
+    } catch {
+      // Ignored
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
+    const timer = setTimeout(() => {
+      fetchStats();
+    }, 0);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleResolve = async (id: string, name: string) => {
+    try {
+      const res = await fetch(`/api/admin/inquiries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast(`Inquiry for ${name} resolved successfully!`, 'success');
+        fetchStats();
+      } else {
+        toast(data.error || 'Failed to resolve inquiry', 'error');
+      }
+    } catch {
+      toast('Failed to resolve inquiry due to network error', 'error');
+    }
+  };
 
   const stats = [
     {
       title: 'Total Students',
-      value: '142',
-      change: '+8% this month',
+      value: statsData.totalStudents,
+      change: 'Synced from DB',
       icon: '👥',
       color: 'text-primary',
     },
     {
       title: 'Pending Leads',
-      value: '18',
-      change: '4 handoffs waiting',
+      value: statsData.pendingLeads,
+      change: 'Handoffs waiting',
       icon: '⚡',
       color: 'text-amber-500',
     },
     {
       title: 'Messages Today',
-      value: '294',
-      change: '99.1% AI Handled',
+      value: statsData.messagesToday,
+      change: 'AI / Admin Logs',
       icon: '💬',
       color: 'text-sky-500',
     },
     {
-      title: 'Trial Conversion',
-      value: '64.5%',
-      change: '+4.2% vs last week',
+      title: 'Conversion Rate',
+      value: statsData.conversionRate,
+      change: 'Active vs Total',
       icon: '📈',
       color: 'text-emerald-500',
     },
@@ -53,7 +106,13 @@ export default function AdminDashboard() {
             Real-time stats and metrics for Amrit Yoga Raipur.
           </p>
         </div>
-        <button className="inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/95 transition-colors shadow-sm cursor-pointer">
+        <button
+          onClick={() => {
+            setLoading(true);
+            fetchStats();
+          }}
+          className="inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/95 transition-colors shadow-sm cursor-pointer"
+        >
           Refresh Analytics
         </button>
       </div>
@@ -104,7 +163,6 @@ export default function AdminDashboard() {
             <Skeleton className="h-48 w-full" />
           ) : (
             <div className="h-48 w-full flex items-end justify-between px-2 pt-6 relative">
-              {/* Simple beautiful SVG chart lines/bars to avoid bundle bloat */}
               <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 py-6 border-b border-border">
                 <div className="border-t border-dashed border-muted w-full h-0"></div>
                 <div className="border-t border-dashed border-muted w-full h-0"></div>
@@ -187,15 +245,16 @@ export default function AdminDashboard() {
               Leads awaiting manual follow-up from coordinators.
             </p>
           </div>
-          <span className="text-xs text-muted font-bold hover:underline cursor-pointer">
-            View All
-          </span>
         </div>
 
         {loading ? (
           <div className="space-y-4">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
+          </div>
+        ) : recentInquiries.length === 0 ? (
+          <div className="py-6 text-center text-muted font-medium">
+            No pending handoff inquiries found.
           </div>
         ) : (
           <div className="overflow-x-auto w-full">
@@ -205,37 +264,37 @@ export default function AdminDashboard() {
                   <th className="pb-3 pr-4 font-semibold">Customer</th>
                   <th className="pb-3 px-4 font-semibold">Phone</th>
                   <th className="pb-3 px-4 font-semibold">Inquiry Message</th>
-                  <th className="pb-3 px-4 font-semibold">Triggered</th>
+                  <th className="pb-3 px-4 font-semibold">Status</th>
                   <th className="pb-3 pl-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {[
-                  {
-                    name: 'John Doe',
-                    phone: '+91 99999 88888',
-                    msg: 'Do you offer therapeutic yoga for lower back pain?',
-                    date: '12 min ago',
-                  },
-                  {
-                    name: 'Amit Sharma',
-                    phone: '+91 88888 77777',
-                    msg: 'Can I pay monthly instead of quarterly fees?',
-                    date: '45 min ago',
-                  },
-                ].map((item, i) => (
+                {recentInquiries.map((item) => (
                   <tr
-                    key={i}
+                    key={item.id}
                     className="border-b border-border/50 last:border-0 hover:bg-secondary/50 transition-colors"
                   >
-                    <td className="py-3.5 pr-4 font-semibold text-foreground">{item.name}</td>
-                    <td className="py-3.5 px-4 font-mono text-muted text-xs">{item.phone}</td>
-                    <td className="py-3.5 px-4 text-muted max-w-xs truncate">{item.msg}</td>
-                    <td className="py-3.5 px-4 text-xs font-medium text-muted">{item.date}</td>
+                    <td className="py-3.5 pr-4 font-semibold text-foreground">
+                      {item.customer_name}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-muted text-xs">
+                      {item.phone_number}
+                    </td>
+                    <td className="py-3.5 px-4 text-muted max-w-xs truncate">{item.message}</td>
+                    <td className="py-3.5 px-4 text-xs font-semibold uppercase text-amber-600">
+                      {item.status}
+                    </td>
                     <td className="py-3.5 pl-4 text-right">
-                      <button className="h-7 px-3 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors shadow-sm cursor-pointer">
-                        Follow Up
-                      </button>
+                      {item.status === 'pending' ? (
+                        <button
+                          onClick={() => handleResolve(item.id, item.customer_name)}
+                          className="h-7 px-3 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors shadow-sm cursor-pointer"
+                        >
+                          Resolve
+                        </button>
+                      ) : (
+                        <span className="text-xs text-muted font-semibold">Resolved</span>
+                      )}
                     </td>
                   </tr>
                 ))}

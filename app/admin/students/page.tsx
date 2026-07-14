@@ -15,46 +15,6 @@ interface StudentState {
   notes: string | null;
 }
 
-// Mock students data matching DB Student model
-const initialStudents: StudentState[] = [
-  {
-    id: '1',
-    phone_number: '+91 98765 43210',
-    name: 'Aarav Mehta',
-    status: 'active',
-    trial_date: null,
-    batch_id: 'batch-1',
-    notes: 'Prefers morning slots.',
-  },
-  {
-    id: '2',
-    phone_number: '+91 99999 88888',
-    name: 'John Doe',
-    status: 'trial_booked',
-    trial_date: '2026-07-20T10:00:00Z',
-    batch_id: null,
-    notes: 'Trial scheduled for next Monday.',
-  },
-  {
-    id: '3',
-    phone_number: '+91 88888 77777',
-    name: 'Amit Sharma',
-    status: 'lead',
-    trial_date: null,
-    batch_id: null,
-    notes: 'Inquired about therapeutic classes.',
-  },
-  {
-    id: '4',
-    phone_number: '+91 77777 66666',
-    name: 'Neha Gupta',
-    status: 'inactive',
-    trial_date: null,
-    batch_id: 'batch-2',
-    notes: 'On leave for 2 weeks.',
-  },
-];
-
 const mockBatches = [
   { id: 'batch-1', name: 'Morning Hatha Flow (6:00 AM)' },
   { id: 'batch-2', name: 'Evening Power Vinyasa (7:00 PM)' },
@@ -63,23 +23,53 @@ const mockBatches = [
 export default function StudentsManager() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [students, setStudents] = useState<StudentState[]>(initialStudents);
+  const [students, setStudents] = useState<StudentState[]>([]);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [editingStudent, setEditingStudent] = useState<StudentState | null>(null);
 
+  const fetchStudents = async () => {
+    try {
+      const res = await fetch('/api/admin/students');
+      const data = await res.json();
+      if (data.success) {
+        setStudents(data.students);
+      }
+    } catch {
+      // Ignored
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
+    const timer = setTimeout(() => {
+      fetchStudents();
+    }, 0);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingStudent) return;
 
-    setStudents((prev) => prev.map((s) => (s.id === editingStudent.id ? editingStudent : s)));
-    toast(`Successfully updated student profile for ${editingStudent.name}`, 'success');
-    setEditingStudent(null);
+    try {
+      const res = await fetch(`/api/admin/students/${editingStudent.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingStudent),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast(`Successfully updated student profile for ${editingStudent.name}`, 'success');
+        setEditingStudent(null);
+        fetchStudents();
+      } else {
+        toast(data.error || 'Failed to update student profile', 'error');
+      }
+    } catch {
+      toast('Network error updating student profile', 'error');
+    }
   };
 
   const filtered = students.filter((s) => {
@@ -149,10 +139,8 @@ export default function StudentsManager() {
                     mockBatches.find((b) => b.id === student.batch_id)?.name || 'Not Assigned';
 
                   const statusBadges = {
-                    active:
-                      'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-                    trial_booked:
-                      'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
+                    active: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+                    trial_booked: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
                     lead: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
                     inactive: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20',
                   };
@@ -168,7 +156,7 @@ export default function StudentsManager() {
                       </td>
                       <td className="py-4 px-4">
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusBadges[student.status as keyof typeof statusBadges]}`}
+                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusBadges[student.status as keyof typeof statusBadges] || 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'}`}
                         >
                           {student.status.replace('_', ' ')}
                         </span>
@@ -207,15 +195,15 @@ export default function StudentsManager() {
                 <h2 className="text-xl font-bold text-foreground">Edit Student Profile</h2>
                 <button
                   onClick={() => setEditingStudent(null)}
-                  className="h-8 w-8 rounded-full border border-border flex items-center justify-center text-xs hover:bg-secondary cursor-pointer text-foreground"
+                  className="text-muted hover:text-foreground text-sm font-semibold cursor-pointer"
                 >
-                  ✕
+                  Close
                 </button>
               </div>
 
               <form onSubmit={handleSave} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-muted">Full Name</label>
+                  <label className="text-xs font-semibold text-muted">Customer Name</label>
                   <input
                     type="text"
                     required
@@ -238,7 +226,7 @@ export default function StudentsManager() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-muted">Status</label>
+                  <label className="text-xs font-semibold text-muted"> practitioner Status</label>
                   <select
                     value={editingStudent.status}
                     onChange={(e) =>
@@ -250,13 +238,13 @@ export default function StudentsManager() {
                   >
                     <option value="lead">Lead</option>
                     <option value="trial_booked">Trial Booked</option>
-                    <option value="active">Active</option>
+                    <option value="active">Active Practitioner</option>
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-muted">Class Batch Slot</label>
+                  <label className="text-xs font-semibold text-muted">Assigned Class Slot</label>
                   <select
                     value={editingStudent.batch_id || ''}
                     onChange={(e) =>
@@ -276,9 +264,9 @@ export default function StudentsManager() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-muted">Notes</label>
+                  <label className="text-xs font-semibold text-muted">Practitioner Notes</label>
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={editingStudent.notes || ''}
                     onChange={(e) =>
                       setEditingStudent((prev) =>
@@ -289,21 +277,12 @@ export default function StudentsManager() {
                   />
                 </div>
 
-                <div className="flex gap-4 mt-4">
-                  <button
-                    type="submit"
-                    className="flex-1 h-10 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/95 transition-colors shadow-md cursor-pointer"
-                  >
-                    Save Changes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingStudent(null)}
-                    className="flex-1 h-10 rounded-full border border-border text-sm font-semibold hover:bg-secondary transition-colors cursor-pointer text-foreground"
-                  >
-                    Cancel
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  className="h-11 w-full rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/95 transition-all shadow-md cursor-pointer mt-4"
+                >
+                  Save Changes
+                </button>
               </form>
             </div>
           </div>

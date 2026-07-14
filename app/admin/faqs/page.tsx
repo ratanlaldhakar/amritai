@@ -5,39 +5,21 @@ import { Card } from '@/components/card';
 import { Skeleton } from '@/components/skeleton';
 import { useToast } from '@/components/toast';
 
-const initialFaqs = [
-  {
-    id: '1',
-    category: 'general',
-    question: 'Where is Amrit Yoga Center located?',
-    answer:
-      'Amrit Yoga Center is located at E-168, Sector 2, Devendra Nagar, Raipur, Chhattisgarh 492004.',
-    is_published: true,
-  },
-  {
-    id: '2',
-    category: 'pricing',
-    question: 'What is the monthly subscription fee?',
-    answer:
-      'The monthly fee is ₹1,500. We also offer quarterly passes for ₹4,000 and annual passes for ₹12,000.',
-    is_published: true,
-  },
-  {
-    id: '3',
-    category: 'classes',
-    question: 'What are the Hatha Yoga timings?',
-    answer: 'Daily morning slot: 6:00 AM - 7:30 AM. Evening slot: 5:30 PM - 7:00 PM.',
-    is_published: true,
-  },
-];
+interface FAQ {
+  id: string;
+  category: string;
+  question: string;
+  answer: string;
+  is_published: boolean;
+}
 
 export default function FAQManager() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [faqs, setFaqs] = useState(initialFaqs);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
-  const [editingFaq, setEditingFaq] = useState<(typeof initialFaqs)[0] | null>(null);
+  const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [newFaq, setNewFaq] = useState({
     category: 'general',
@@ -46,53 +28,111 @@ export default function FAQManager() {
     is_published: true,
   });
 
+  const fetchFaqs = async () => {
+    try {
+      const res = await fetch('/api/admin/faqs');
+      const data = await res.json();
+      if (data.success) {
+        setFaqs(data.faqs);
+      }
+    } catch {
+      // Ignored
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
+    const timer = setTimeout(() => {
+      fetchFaqs();
+    }, 0);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFaq.question.trim() || !newFaq.answer.trim()) return;
 
-    const id = Math.random().toString(36).substring(2, 9);
-    setFaqs((prev) => [...prev, { id, ...newFaq }]);
-    toast('FAQ created successfully!', 'success');
-    setNewFaq({ category: 'general', question: '', answer: '', is_published: true });
-    setIsAdding(false);
+    try {
+      const res = await fetch('/api/admin/faqs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFaq),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast('FAQ created successfully!', 'success');
+        setNewFaq({ category: 'general', question: '', answer: '', is_published: true });
+        setIsAdding(false);
+        fetchFaqs();
+      } else {
+        toast(data.error || 'Failed to create FAQ', 'error');
+      }
+    } catch {
+      toast('Network error creating FAQ', 'error');
+    }
   };
 
-  const handleUpdate = (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingFaq) return;
 
-    setFaqs((prev) => prev.map((f) => (f.id === editingFaq.id ? editingFaq : f)));
-    toast('FAQ updated successfully!', 'success');
-    setEditingFaq(null);
+    try {
+      const res = await fetch(`/api/admin/faqs/${editingFaq.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingFaq),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast('FAQ updated successfully!', 'success');
+        setEditingFaq(null);
+        fetchFaqs();
+      } else {
+        toast(data.error || 'Failed to update FAQ', 'error');
+      }
+    } catch {
+      toast('Network error updating FAQ', 'error');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setFaqs((prev) => prev.filter((f) => f.id !== id));
-    toast('FAQ deleted successfully!', 'warning');
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this FAQ?')) return;
+    try {
+      const res = await fetch(`/api/admin/faqs/${id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast('FAQ deleted successfully!', 'success');
+        fetchFaqs();
+      } else {
+        toast(data.error || 'Failed to delete FAQ', 'error');
+      }
+    } catch {
+      toast('Network error deleting FAQ', 'error');
+    }
   };
 
-  const filtered = faqs.filter((f) => {
+  const filtered = faqs.filter((faq) => {
     const matchesSearch =
-      f.question.toLowerCase().includes(search.toLowerCase()) ||
-      f.answer.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || f.category === filterCategory;
+      faq.question.toLowerCase().includes(search.toLowerCase()) ||
+      faq.answer.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = filterCategory === 'all' || faq.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
+  const categories = ['all', 'general', 'pricing', 'classes', 'location', 'teachers'];
+
   return (
-    <div className="flex flex-col gap-8 w-full">
+    <div className="flex flex-col gap-8 w-full relative">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-            Frequently Asked Questions (FAQs)
+            AI Knowledge base (FAQs)
           </h1>
           <p className="text-sm text-muted mt-1">
-            Manage rules, FAQ entries, and AI knowledge blocks.
+            Maintain questions and answers for your AI receptionist to answer customer requests.
           </p>
         </div>
         <button
@@ -103,7 +143,7 @@ export default function FAQManager() {
         </button>
       </div>
 
-      {/* FILTER & SEARCH BAR */}
+      {/* FILTER BAR */}
       <Card className="py-4 px-6 flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="w-full md:max-w-xs relative">
           <input
@@ -115,8 +155,8 @@ export default function FAQManager() {
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto w-full md:w-auto">
-          {['all', 'general', 'pricing', 'classes'].map((cat) => (
+        <div className="flex gap-2.5 flex-wrap">
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
@@ -126,18 +166,22 @@ export default function FAQManager() {
                   : 'bg-background text-muted border-border hover:bg-secondary'
               }`}
             >
-              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              {cat.toUpperCase()}
             </button>
           ))}
         </div>
       </Card>
 
-      {/* FAQ ITEMS LIST */}
-      <div className="flex flex-col gap-6">
+      {/* FAQS GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {loading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
+          <>
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-40 w-full" />
+          </>
+        ) : filtered.length === 0 ? (
+          <div className="col-span-2 py-8 text-center text-muted font-medium bg-card rounded-3xl border border-border">
+            No FAQs found matching your criteria.
           </div>
         ) : (
           filtered.map((faq) => (
@@ -147,32 +191,35 @@ export default function FAQManager() {
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 uppercase">
                     {faq.category}
                   </span>
-                  <h4 className="font-bold text-sm text-foreground">{faq.question}</h4>
+                  {!faq.is_published && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-500 border border-zinc-200 uppercase">
+                      Draft
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setEditingFaq({ ...faq })}
-                    className="h-7 px-3 rounded-full border border-border text-xs font-semibold hover:bg-secondary transition-colors cursor-pointer text-foreground"
+                    className="text-xs font-bold text-primary hover:underline cursor-pointer"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(faq.id)}
-                    className="h-7 px-3 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20 text-xs font-semibold hover:bg-rose-500/20 transition-colors cursor-pointer"
+                    className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
                   >
                     Delete
                   </button>
                 </div>
               </div>
-              <p className="text-sm text-muted leading-6">{faq.answer}</p>
+              <div>
+                <h4 className="font-bold text-foreground text-sm">{faq.question}</h4>
+                <p className="text-xs text-muted leading-relaxed mt-2 whitespace-pre-wrap">
+                  {faq.answer}
+                </p>
+              </div>
             </Card>
           ))
-        )}
-
-        {!loading && filtered.length === 0 && (
-          <Card className="py-12 text-center text-muted font-medium">
-            No FAQ items found matching your filter.
-          </Card>
         )}
       </div>
 
@@ -185,7 +232,7 @@ export default function FAQManager() {
             </h3>
 
             <form onSubmit={handleCreate} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted">Category</label>
                 <select
                   value={newFaq.category}
@@ -195,10 +242,12 @@ export default function FAQManager() {
                   <option value="general">General</option>
                   <option value="pricing">Pricing</option>
                   <option value="classes">Classes</option>
+                  <option value="location">Location</option>
+                  <option value="teachers">Teachers</option>
                 </select>
               </div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted">Question</label>
                 <input
                   type="text"
@@ -210,7 +259,7 @@ export default function FAQManager() {
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted">Answer</label>
                 <textarea
                   rows={4}
@@ -222,19 +271,37 @@ export default function FAQManager() {
                 />
               </div>
 
-              <div className="flex gap-4 mt-2">
-                <button
-                  type="submit"
-                  className="flex-1 h-10 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/95 transition-colors shadow-md cursor-pointer"
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="checkbox"
+                  id="new-publish"
+                  checked={newFaq.is_published}
+                  onChange={(e) =>
+                    setNewFaq((prev) => ({ ...prev, is_published: e.target.checked }))
+                  }
+                  className="rounded border-border text-primary focus:ring-primary"
+                />
+                <label
+                  htmlFor="new-publish"
+                  className="text-xs font-semibold text-muted select-none"
                 >
-                  Create
-                </button>
+                  Publish immediately (available to AI Receptionist)
+                </label>
+              </div>
+
+              <div className="flex gap-3 mt-4">
                 <button
                   type="button"
                   onClick={() => setIsAdding(false)}
-                  className="flex-1 h-10 rounded-full border border-border text-sm font-semibold hover:bg-secondary transition-colors cursor-pointer text-foreground"
+                  className="flex-1 h-10 rounded-xl border border-border text-xs font-bold hover:bg-secondary cursor-pointer text-foreground"
                 >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 h-10 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/95 shadow-md cursor-pointer"
+                >
+                  Create
                 </button>
               </div>
             </form>
@@ -251,7 +318,7 @@ export default function FAQManager() {
             </h3>
 
             <form onSubmit={handleUpdate} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted">Category</label>
                 <select
                   value={editingFaq.category}
@@ -263,10 +330,12 @@ export default function FAQManager() {
                   <option value="general">General</option>
                   <option value="pricing">Pricing</option>
                   <option value="classes">Classes</option>
+                  <option value="location">Location</option>
+                  <option value="teachers">Teachers</option>
                 </select>
               </div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted">Question</label>
                 <input
                   type="text"
@@ -279,7 +348,7 @@ export default function FAQManager() {
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted">Answer</label>
                 <textarea
                   rows={4}
@@ -292,19 +361,39 @@ export default function FAQManager() {
                 />
               </div>
 
-              <div className="flex gap-4 mt-2">
-                <button
-                  type="submit"
-                  className="flex-1 h-10 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/95 transition-colors shadow-md cursor-pointer"
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="checkbox"
+                  id="edit-publish"
+                  checked={editingFaq.is_published}
+                  onChange={(e) =>
+                    setEditingFaq((prev) =>
+                      prev ? { ...prev, is_published: e.target.checked } : null
+                    )
+                  }
+                  className="rounded border-border text-primary focus:ring-primary"
+                />
+                <label
+                  htmlFor="edit-publish"
+                  className="text-xs font-semibold text-muted select-none"
                 >
-                  Save Changes
-                </button>
+                  Publish FAQ (available to AI Receptionist)
+                </label>
+              </div>
+
+              <div className="flex gap-3 mt-4">
                 <button
                   type="button"
                   onClick={() => setEditingFaq(null)}
-                  className="flex-1 h-10 rounded-full border border-border text-sm font-semibold hover:bg-secondary transition-colors cursor-pointer text-foreground"
+                  className="flex-1 h-10 rounded-xl border border-border text-xs font-bold hover:bg-secondary cursor-pointer text-foreground"
                 >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 h-10 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/95 shadow-md cursor-pointer"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

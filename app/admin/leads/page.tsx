@@ -5,49 +5,58 @@ import { Card } from '@/components/card';
 import { TableSkeleton } from '@/components/skeleton';
 import { useToast } from '@/components/toast';
 
-const initialInquiries = [
-  {
-    id: '1',
-    phone_number: '+91 99999 88888',
-    customer_name: 'John Doe',
-    message: 'Do you offer therapeutic yoga for lower back pain?',
-    status: 'pending',
-    created_at: '2026-07-14T22:00:00Z',
-  },
-  {
-    id: '2',
-    phone_number: '+91 88888 77777',
-    customer_name: 'Amit Sharma',
-    message: 'Can I pay monthly instead of quarterly fees?',
-    status: 'pending',
-    created_at: '2026-07-14T21:30:00Z',
-  },
-  {
-    id: '3',
-    phone_number: '+91 77777 66666',
-    customer_name: 'Sarah Connor',
-    message: 'Is there a trial class for children?',
-    status: 'resolved',
-    created_at: '2026-07-14T19:00:00Z',
-  },
-];
+interface Inquiry {
+  id: string;
+  phone_number: string;
+  customer_name: string;
+  message: string;
+  status: 'pending' | 'resolved' | 'ignored';
+  created_at: string;
+}
 
 export default function LeadsManager() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [inquiries, setInquiries] = useState(initialInquiries);
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'resolved'>('pending');
 
+  const fetchInquiries = async () => {
+    try {
+      const res = await fetch('/api/admin/inquiries');
+      const data = await res.json();
+      if (data.success) {
+        setInquiries(data.inquiries);
+      }
+    } catch {
+      // Ignored
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
+    const timer = setTimeout(() => {
+      fetchInquiries();
+    }, 0);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleResolve = (id: string, name: string) => {
-    setInquiries((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status: 'resolved' as const } : item))
-    );
-    toast(`Inquiry for ${name} marked as resolved!`, 'success');
+  const handleResolve = async (id: string, name: string) => {
+    try {
+      const res = await fetch(`/api/admin/inquiries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast(`Inquiry for ${name} marked as resolved!`, 'success');
+        fetchInquiries();
+      } else {
+        toast(data.error || 'Failed to resolve inquiry', 'error');
+      }
+    } catch {
+      toast('Network error resolving inquiry', 'error');
+    }
   };
 
   const filtered = inquiries.filter((item) => filter === 'all' || item.status === filter);
@@ -65,49 +74,22 @@ export default function LeadsManager() {
         </div>
       </div>
 
-      {/* LEAD FUNNEL PIPELINE */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="flex flex-col gap-2">
-          <span className="text-xs font-semibold text-muted uppercase tracking-wider text-muted">
-            Total Leads
-          </span>
-          <span className="text-3xl font-bold tracking-tight text-foreground">42</span>
-          <span className="text-xs text-muted mt-1.5">Acquired via WhatsApp receptionist</span>
-        </Card>
-        <Card className="flex flex-col gap-2 border-primary/20 bg-primary/5">
-          <span className="text-xs font-semibold text-primary uppercase tracking-wider text-primary">
-            Trial Booked
-          </span>
-          <span className="text-3xl font-bold tracking-tight text-primary">18</span>
-          <span className="text-xs text-primary/70 mt-1.5">Scheduled this week</span>
-        </Card>
-        <Card className="flex flex-col gap-2">
-          <span className="text-xs font-semibold text-muted uppercase tracking-wider text-muted">
-            Converted Members
-          </span>
-          <span className="text-3xl font-bold tracking-tight text-foreground">12</span>
-          <span className="text-xs text-muted mt-1.5">42.8% active conversion rate</span>
-        </Card>
+      {/* TABS FILTER */}
+      <div className="flex gap-2.5">
+        {(['pending', 'resolved', 'all'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setFilter(tab)}
+            className={`h-9 px-4 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+              filter === tab
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'bg-background text-muted border-border hover:bg-secondary'
+            }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
-
-      {/* FILTER BUTTONS */}
-      <Card className="py-4 px-6 flex justify-between items-center">
-        <div className="flex gap-2">
-          {(['pending', 'resolved', 'all'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`h-9 px-4 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                filter === tab
-                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                  : 'bg-background text-muted border-border hover:bg-secondary'
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-      </Card>
 
       {/* INQUIRIES LIST */}
       <Card>
@@ -116,7 +98,7 @@ export default function LeadsManager() {
         </h3>
 
         {loading ? (
-          <TableSkeleton rows={3} cols={5} />
+          <TableSkeleton rows={4} cols={5} />
         ) : (
           <div className="overflow-x-auto w-full">
             <table className="w-full text-left text-sm border-collapse">
@@ -156,13 +138,13 @@ export default function LeadsManager() {
                     <td className="py-4 pl-4 text-right">
                       {item.status === 'pending' ? (
                         <button
-                          onClick={() => handleResolve(item.id, item.customer_name || 'Customer')}
-                          className="h-8 px-4 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/95 transition-colors shadow-sm cursor-pointer"
+                          onClick={() => handleResolve(item.id, item.customer_name)}
+                          className="h-8 px-4 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/95 transition-all shadow-md cursor-pointer"
                         >
                           Mark Resolved
                         </button>
                       ) : (
-                        <span className="text-xs text-muted font-medium">No actions</span>
+                        <span className="text-xs text-muted font-semibold">Handled</span>
                       )}
                     </td>
                   </tr>

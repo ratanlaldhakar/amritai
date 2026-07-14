@@ -17,18 +17,63 @@ export default function SettingsManager() {
   const [quarterlyFee, setQuarterlyFee] = useState(4000);
   const [morningStart, setMorningStart] = useState('06:00');
   const [morningEnd, setMorningEnd] = useState('07:30');
-  const [systemPrompt, setSystemPrompt] = useState(
-    'You are the friendly, polite, and professional AI Receptionist for "Amrit Yoga Center" Raipur...'
-  );
+  const [systemPrompt, setSystemPrompt] = useState('');
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/settings');
+      const data = await res.json();
+      if (data.success) {
+        const s = data.settings;
+        setAiEnabled(s.aiEnabled);
+        setPrimaryModel(s.primaryModel);
+        setTemperature(s.temperature);
+        setMonthlyFee(s.monthlyFee);
+        setQuarterlyFee(s.quarterlyFee);
+        setMorningStart(s.morningStart);
+        setMorningEnd(s.morningEnd);
+        setSystemPrompt(s.systemPrompt);
+      }
+    } catch {
+      // Ignored
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
+    const timer = setTimeout(() => {
+      fetchSettings();
+    }, 0);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast('Settings successfully saved to database!', 'success');
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          aiEnabled,
+          primaryModel,
+          temperature,
+          monthlyFee,
+          quarterlyFee,
+          morningStart,
+          morningEnd,
+          systemPrompt,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast('Settings successfully saved to database!', 'success');
+      } else {
+        toast(data.error || 'Failed to save settings', 'error');
+      }
+    } catch {
+      toast('Network error saving settings', 'error');
+    }
   };
 
   return (
@@ -74,15 +119,15 @@ export default function SettingsManager() {
                 }`}
               >
                 <span
-                  className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white transition-all duration-300 ${
-                    aiEnabled ? 'translate-x-6' : 'translate-x-0'
+                  className={`w-6 h-6 rounded-full bg-white absolute top-1 transition-all shadow-md ${
+                    aiEnabled ? 'right-1' : 'left-1'
                   }`}
                 />
               </button>
             </div>
           </Card>
 
-          {/* STUDIO PARAMETERS (FEES & TIMINGS) */}
+          {/* STUDIO PARAMETERS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Fees Configuration */}
             <Card className="flex flex-col gap-4">
@@ -123,7 +168,7 @@ export default function SettingsManager() {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-muted">Start Time</label>
                   <input
-                    type="time"
+                    type="text"
                     required
                     value={morningStart}
                     onChange={(e) => setMorningStart(e.target.value)}
@@ -133,7 +178,7 @@ export default function SettingsManager() {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-muted">End Time</label>
                   <input
-                    type="time"
+                    type="text"
                     required
                     value={morningEnd}
                     onChange={(e) => setMorningEnd(e.target.value)}
@@ -152,7 +197,7 @@ export default function SettingsManager() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-muted">Primary LLM Model</label>
+                <label className="text-xs font-semibold text-muted">LLM Provider & Model</label>
                 <select
                   value={primaryModel}
                   onChange={(e) => setPrimaryModel(e.target.value)}
@@ -160,7 +205,7 @@ export default function SettingsManager() {
                 >
                   <option value="gemini-2.5-flash">Google Gemini 2.5 Flash</option>
                   <option value="gemini-2.5-pro">Google Gemini 2.5 Pro</option>
-                  <option value="llama3-8b-8192">Llama 3 8B (via Groq)</option>
+                  <option value="groq-llama-3-70b">Llama 3 70b (via Groq)</option>
                 </select>
               </div>
 
@@ -170,20 +215,22 @@ export default function SettingsManager() {
                 </label>
                 <input
                   type="range"
-                  min="0.1"
-                  max="1.0"
-                  step="0.05"
+                  min="0"
+                  max="1"
+                  step="0.1"
                   value={temperature}
                   onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                  className="h-10 accent-primary focus:outline-none"
+                  className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary mt-3"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-muted">System Instructions Prompt</label>
+            <div className="flex flex-col gap-1.5 mt-2">
+              <label className="text-xs font-semibold text-muted">
+                Receptionist System Persona
+              </label>
               <textarea
-                rows={6}
+                rows={10}
                 required
                 value={systemPrompt}
                 onChange={(e) => setSystemPrompt(e.target.value)}
@@ -192,11 +239,10 @@ export default function SettingsManager() {
             </div>
           </Card>
 
-          {/* Action Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-end mt-4">
             <button
               type="submit"
-              className="h-11 px-8 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/95 transition-colors shadow-md cursor-pointer"
+              className="h-11 px-8 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/95 transition-all shadow-md cursor-pointer"
             >
               Save Configuration
             </button>

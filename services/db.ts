@@ -75,6 +75,39 @@ export const db = {
       }
       return true;
     },
+
+    async getAll(): Promise<Student[]> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        logger.error('db.students.getAll error:', {}, error);
+        return [];
+      }
+      return data || [];
+    },
+
+    async update(
+      id: string,
+      updates: Partial<Omit<Student, 'id' | 'phone_number' | 'created_at'>>
+    ): Promise<Student | null> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('students')
+        .update(updates)
+        .eq('id', id)
+        .select('*')
+        .single();
+
+      if (error) {
+        logger.error('db.students.update error:', { id, updates }, error);
+        return null;
+      }
+      return data;
+    },
   },
 
   batches: {
@@ -134,6 +167,61 @@ export const db = {
       }
       return data || [];
     },
+
+    async getAllWithUnpublished(): Promise<FAQ[]> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('faqs')
+        .select('*')
+        .order('category', { ascending: true });
+
+      if (error) {
+        logger.error('db.faqs.getAllWithUnpublished error:', {}, error);
+        return [];
+      }
+      return data || [];
+    },
+
+    async create(faq: Omit<FAQ, 'id' | 'created_at' | 'updated_at'>): Promise<FAQ | null> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase.from('faqs').insert(faq).select('*').single();
+
+      if (error) {
+        logger.error('db.faqs.create error:', { faq }, error);
+        return null;
+      }
+      return data;
+    },
+
+    async update(
+      id: string,
+      updates: Partial<Omit<FAQ, 'id' | 'created_at' | 'updated_at'>>
+    ): Promise<FAQ | null> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('faqs')
+        .update(updates)
+        .eq('id', id)
+        .select('*')
+        .single();
+
+      if (error) {
+        logger.error('db.faqs.update error:', { id, updates }, error);
+        return null;
+      }
+      return data;
+    },
+
+    async delete(id: string): Promise<boolean> {
+      const supabase = getSupabaseServiceRole();
+      const { error } = await supabase.from('faqs').delete().eq('id', id);
+
+      if (error) {
+        logger.error('db.faqs.delete error:', { id }, error);
+        return false;
+      }
+      return true;
+    },
   },
 
   messages: {
@@ -162,6 +250,35 @@ export const db = {
         return [];
       }
       return (data || []).reverse(); // Order chronologically ascending
+    },
+
+    async getConversations(): Promise<any[]> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('whatsapp_timestamp', { ascending: false });
+
+      if (error) {
+        logger.error('db.messages.getConversations error:', {}, error);
+        return [];
+      }
+
+      const chatsMap = new Map<string, any>();
+      for (const msg of data || []) {
+        const phone = msg.phone_number;
+        if (!chatsMap.has(phone)) {
+          chatsMap.set(phone, {
+            phone_number: phone,
+            customer_name: msg.customer_name || 'Unknown WhatsApp User',
+            last_message: msg.text,
+            last_timestamp: msg.whatsapp_timestamp,
+            unread: false,
+          });
+        }
+      }
+
+      return Array.from(chatsMap.values());
     },
   },
 
@@ -214,6 +331,20 @@ export const db = {
         return false;
       }
       return true;
+    },
+
+    async getAll(): Promise<Inquiry[]> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('inquiries')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        logger.error('db.inquiries.getAll error:', {}, error);
+        return [];
+      }
+      return data || [];
     },
   },
 

@@ -279,18 +279,18 @@ class WhatsAppClient {
    */
   async reply(to: string, text: string, messageId: string) {
     const cleanTo = this.cleanPhoneNumber(to);
-    logger.info(`Replying to WhatsApp message ${messageId} for user ${cleanTo}`);
+    logger.info(
+      `Replying to WhatsApp message ${messageId} for user ${cleanTo} (sending unthreaded)`
+    );
     return this.request('messages', {
       method: 'POST',
       body: JSON.stringify({
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
         to: cleanTo,
-        context: {
-          message_id: messageId,
-        },
         type: 'text',
         text: {
+          preview_url: false,
           body: text,
         },
       }),

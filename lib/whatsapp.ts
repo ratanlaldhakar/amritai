@@ -35,6 +35,13 @@ class WhatsAppClient {
   private token = env.WHATSAPP_ACCESS_TOKEN;
   private phoneId = env.WHATSAPP_PHONE_NUMBER_ID;
 
+  /**
+   * Helper to clean phone numbers to contain only digits as required by Meta Cloud API
+   */
+  private cleanPhoneNumber(phone: string): string {
+    return phone.replace(/\D/g, '');
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}/${this.phoneId}/${endpoint}`;
     const headers = {
@@ -49,18 +56,43 @@ class WhatsAppClient {
         headers,
       });
 
-      const data = await response.json();
+      const rawText = await response.text();
+      let responseData: any = {};
+      try {
+        if (rawText) {
+          responseData = JSON.parse(rawText);
+        }
+      } catch {
+        logger.warn('WhatsApp API response was not valid JSON:', { rawText });
+      }
 
       if (!response.ok) {
-        logger.error('WhatsApp API Error Response:', { status: response.status, data });
+        const errorMsg = responseData?.error?.message || response.statusText || 'Unknown error';
+        const errorCode = responseData?.error?.code;
+        const errorSubcode = responseData?.error?.error_subcode;
+
+        logger.error('WhatsApp API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: rawText,
+          error: {
+            message: errorMsg,
+            code: errorCode,
+            error_subcode: errorSubcode,
+          },
+        });
+
         throw new Error(
-          (data as any).error?.message || `WhatsApp API request failed: ${response.statusText}`
+          `WhatsApp API Error [${response.status}]: ${errorMsg} (Code: ${errorCode}, Subcode: ${errorSubcode})`
         );
       }
 
-      return data as T;
-    } catch (error) {
-      logger.error('WhatsApp Fetch Exception:', {}, error);
+      return responseData as T;
+    } catch (error: any) {
+      logger.error('WhatsApp Fetch Exception:', {
+        message: error.message,
+        stack: error.stack,
+      });
       throw error;
     }
   }
@@ -69,13 +101,14 @@ class WhatsAppClient {
    * Send a standard text message
    */
   async sendText({ to, text, previewUrl = false }: WhatsAppTextMessage) {
-    logger.info(`Sending WhatsApp text message to: ${to}`);
+    const cleanTo = this.cleanPhoneNumber(to);
+    logger.info(`Sending WhatsApp text message to: ${cleanTo}`);
     return this.request('messages', {
       method: 'POST',
       body: JSON.stringify({
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
-        to,
+        to: cleanTo,
         type: 'text',
         text: {
           preview_url: previewUrl,
@@ -93,16 +126,24 @@ class WhatsAppClient {
   }
 
   /**
+   * Send a standard message (additional alias)
+   */
+  async sendMessage(to: string, text: string) {
+    return this.sendTextMessage(to, text);
+  }
+
+  /**
    * Send a template message
    */
   async sendTemplate({ to, templateName, languageCode, components }: WhatsAppTemplateMessage) {
-    logger.info(`Sending WhatsApp template (${templateName}) to: ${to}`);
+    const cleanTo = this.cleanPhoneNumber(to);
+    logger.info(`Sending WhatsApp template (${templateName}) to: ${cleanTo}`);
     return this.request('messages', {
       method: 'POST',
       body: JSON.stringify({
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
-        to,
+        to: cleanTo,
         type: 'template',
         template: {
           name: templateName,
@@ -119,7 +160,8 @@ class WhatsAppClient {
    * Send interactive quick reply buttons
    */
   async sendButtons({ to, bodyText, buttons, headerText, footerText }: WhatsAppInteractiveMessage) {
-    logger.info(`Sending WhatsApp buttons to: ${to}`);
+    const cleanTo = this.cleanPhoneNumber(to);
+    logger.info(`Sending WhatsApp buttons to: ${cleanTo}`);
 
     if (buttons.length > 3) {
       throw new Error('WhatsApp quick reply buttons are limited to a maximum of 3.');
@@ -153,7 +195,7 @@ class WhatsAppClient {
       body: JSON.stringify({
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
-        to,
+        to: cleanTo,
         type: 'interactive',
         interactive,
       }),
@@ -187,13 +229,14 @@ class WhatsAppClient {
    * Reply to a specific incoming message ID
    */
   async reply(to: string, text: string, messageId: string) {
-    logger.info(`Replying to WhatsApp message ${messageId} for user ${to}`);
+    const cleanTo = this.cleanPhoneNumber(to);
+    logger.info(`Replying to WhatsApp message ${messageId} for user ${cleanTo}`);
     return this.request('messages', {
       method: 'POST',
       body: JSON.stringify({
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
-        to,
+        to: cleanTo,
         context: {
           message_id: messageId,
         },

@@ -64,22 +64,23 @@ export class AIBrainService {
   private async queryLLM(prompt: string): Promise<string> {
     // 1. Try Gemini with retry
     try {
-      logger.info('Querying Primary LLM (Google Gemini 2.5 Flash)...');
+      logger.info('Querying Primary LLM: Google Gemini 2.5 Flash');
       const response = await withRetry(
         () => generateGeminiText(prompt, SYSTEM_INSTRUCTION, GEMINI_MODELS.GEMINI_2_5_FLASH),
         { retries: 2, delayMs: 300 }
       );
 
       if (response && response.trim().length > 0) {
+        logger.info('Primary LLM (Gemini) query completed successfully.');
         return response.trim();
       }
       throw new Error('Gemini returned an empty response');
-    } catch (geminiError) {
-      logger.warn(
-        'Primary LLM (Gemini) failed after retries. Attempting fallback LLM (Groq Llama 3)...',
-        {},
-        geminiError
-      );
+    } catch (geminiError: any) {
+      logger.warn('Primary LLM (Gemini) query failed. Error Details:', {
+        message: geminiError?.message,
+        stack: geminiError?.stack,
+      });
+      logger.info('Attempting Fallback LLM: Groq Llama 3 8B');
 
       // 2. Try Groq (Llama 3 8B) with retry
       try {
@@ -89,15 +90,17 @@ export class AIBrainService {
         );
 
         if (response && response.trim().length > 0) {
+          logger.info('Fallback LLM (Groq) query completed successfully.');
           return response.trim();
         }
         throw new Error('Groq returned an empty response');
-      } catch (groqError) {
-        logger.error(
-          'Both Primary and Fallback LLMs failed to respond after retries.',
-          {},
-          groqError
-        );
+      } catch (groqError: any) {
+        logger.error('Both Primary and Fallback LLMs failed to respond after retries.', {
+          groqError: {
+            message: groqError?.message,
+            stack: groqError?.stack,
+          },
+        });
         throw new Error('LLM generation failed completely');
       }
     }
@@ -109,14 +112,16 @@ export class AIBrainService {
   private validateResponse(aiResponse: string): string {
     const cleaned = aiResponse.trim();
 
-    // Check if the model failed or indicated uncertainty
-    if (
-      !cleaned ||
-      cleaned.toLowerCase().includes('unknown') ||
-      cleaned.toLowerCase().includes('sorry, i cannot') ||
-      cleaned.toLowerCase().includes('sorry, i do not') ||
-      cleaned.toLowerCase().includes('instructor will contact')
-    ) {
+    if (!cleaned) {
+      logger.warn('AI Response Validation triggered Fallback: Response is completely empty');
+      return this.fallbackPhrase;
+    }
+
+    // Only fallback if the model explicitly requested or contains instructor contact sentence
+    if (cleaned.toLowerCase().includes('instructor will contact')) {
+      logger.info(
+        'AI Response Validation triggered Fallback: Response explicitly mentioned instructor contact'
+      );
       return this.fallbackPhrase;
     }
 
@@ -197,13 +202,27 @@ export class AIBrainService {
 
     // 3. Compile prompt
     const prompt = compileUserPrompt(knowledgeBaseStr, historyStr, messageText, customerName);
+    logger.info('AI PROMPT COMPILED:', {
+      phoneNumber,
+      customerName,
+      promptText: prompt,
+    });
 
     // 4. Generate response
     let rawResponse: string;
     try {
       rawResponse = await this.queryLLM(prompt);
-    } catch (error) {
-      logger.error('Critical AI Brain LLM Failure. Using fallback handoff.', {}, error);
+      logger.info('AI RAW RESPONSE RECEIVED:', {
+        phoneNumber,
+        rawResponse,
+      });
+    } catch (error: any) {
+      logger.error('Critical AI Brain LLM Failure. Using fallback handoff.', {
+        error: {
+          message: error?.message,
+          stack: error?.stack,
+        },
+      });
       rawResponse = this.fallbackPhrase;
     }
 

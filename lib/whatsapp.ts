@@ -44,57 +44,106 @@ class WhatsAppClient {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}/${this.phoneId}/${endpoint}`;
-    const headers = {
+
+    // Setup headers
+    const headers: Record<string, string> = {
       Authorization: `Bearer ${this.token}`,
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...((options.headers || {}) as Record<string, string>),
     };
 
+    // Filter payload and headers for logs (hide token)
+    let requestPayload: any = null;
     try {
-      const response = await fetch(url, {
+      if (options.body) {
+        requestPayload = JSON.parse(options.body as string);
+      }
+    } catch {
+      requestPayload = options.body;
+    }
+
+    const requestHeadersLogged = { ...headers };
+    if (requestHeadersLogged.Authorization) {
+      requestHeadersLogged.Authorization = 'Bearer [REDACTED]';
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
         ...options,
         headers,
       });
-
-      const rawText = await response.text();
-      let responseData: any = {};
-      try {
-        if (rawText) {
-          responseData = JSON.parse(rawText);
-        }
-      } catch {
-        logger.warn('WhatsApp API response was not valid JSON:', { rawText });
-      }
-
-      if (!response.ok) {
-        const errorMsg = responseData?.error?.message || response.statusText || 'Unknown error';
-        const errorCode = responseData?.error?.code;
-        const errorSubcode = responseData?.error?.error_subcode;
-
-        logger.error('WhatsApp API Error Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: rawText,
-          error: {
-            message: errorMsg,
-            code: errorCode,
-            error_subcode: errorSubcode,
-          },
-        });
-
-        throw new Error(
-          `WhatsApp API Error [${response.status}]: ${errorMsg} (Code: ${errorCode}, Subcode: ${errorSubcode})`
-        );
-      }
-
-      return responseData as T;
-    } catch (error: any) {
-      logger.error('WhatsApp Fetch Exception:', {
-        message: error.message,
-        stack: error.stack,
+    } catch (fetchErr: any) {
+      // Log complete fetch network error object
+      logger.error('WhatsApp API Fetch Network Exception:', {
+        requestUrl: url,
+        requestPayload,
+        requestHeaders: requestHeadersLogged,
+        fetchError: {
+          message: fetchErr?.message,
+          name: fetchErr?.name,
+          stack: fetchErr?.stack,
+          code: fetchErr?.code,
+          cause: fetchErr?.cause,
+        },
       });
-      throw error;
+      throw fetchErr;
     }
+
+    // Collect response headers
+    const responseHeaders: Record<string, string> = {};
+    response.headers.forEach((val, key) => {
+      responseHeaders[key] = val;
+    });
+
+    const rawText = await response.text();
+    let responseData: any = {};
+    try {
+      if (rawText) {
+        responseData = JSON.parse(rawText);
+      }
+    } catch {
+      logger.warn('WhatsApp API response was not valid JSON:', { rawText });
+    }
+
+    if (!response.ok) {
+      const errorMsg = responseData?.error?.message || response.statusText || 'Unknown error';
+      const errorCode = responseData?.error?.code;
+      const errorSubcode = responseData?.error?.error_subcode;
+      const errorData = responseData?.error?.error_data;
+
+      // Log the COMPLETE Meta response before throwing
+      logger.error('WhatsApp API Request Failed - Error details:', {
+        httpStatus: response.status,
+        statusText: response.statusText,
+        requestUrl: url,
+        requestPayload,
+        responseHeaders,
+        responseBody: rawText,
+        metaError: {
+          message: errorMsg,
+          code: errorCode,
+          error_subcode: errorSubcode,
+          error_data: errorData,
+        },
+      });
+
+      // Construct a specific error object containing all details
+      const apiError = new Error(
+        `WhatsApp API Error [${response.status}]: ${errorMsg} (Code: ${errorCode}, Subcode: ${errorSubcode})`
+      );
+      (apiError as any).httpStatus = response.status;
+      (apiError as any).statusText = response.statusText;
+      (apiError as any).requestUrl = url;
+      (apiError as any).requestPayload = requestPayload;
+      (apiError as any).responseHeaders = responseHeaders;
+      (apiError as any).responseBody = rawText;
+      (apiError as any).metaError = responseData?.error;
+
+      throw apiError;
+    }
+
+    return responseData as T;
   }
 
   /**

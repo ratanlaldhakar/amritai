@@ -10,8 +10,8 @@ export const groq = new Groq({
 });
 
 export const GROQ_MODELS = {
-  LLAMA_3_8B: 'llama3-8b-8192',
-  LLAMA_3_70B: 'llama3-70b-8192',
+  LLAMA_3_3_70B: 'llama-3.3-70b-versatile',
+  LLAMA_3_1_8B: 'llama-3.1-8b-instant',
   MIXTRAL_8X7B: 'mixtral-8x7b-32768',
 } as const;
 
@@ -23,7 +23,7 @@ export type GroqModel = (typeof GROQ_MODELS)[keyof typeof GROQ_MODELS];
 export async function generateGroqText(
   prompt: string,
   systemInstruction?: string,
-  model: GroqModel = GROQ_MODELS.LLAMA_3_8B,
+  model: GroqModel = GROQ_MODELS.LLAMA_3_3_70B,
   temperature = 0.3
 ) {
   try {

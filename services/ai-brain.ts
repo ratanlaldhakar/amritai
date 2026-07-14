@@ -58,50 +58,125 @@ export class AIBrainService {
     }
   }
 
-  /**
-   * Query Gemini with automatic Groq fallback, wrapped in retry backoffs
-   */
   private async queryLLM(prompt: string): Promise<string> {
-    // 1. Try Gemini with retry
-    try {
-      logger.info('Querying Primary LLM: Google Gemini 2.5 Flash');
-      const response = await withRetry(
-        () => generateGeminiText(prompt, SYSTEM_INSTRUCTION, GEMINI_MODELS.GEMINI_2_5_FLASH),
-        { retries: 2, delayMs: 300 }
-      );
+    const configuredModel =
+      (await db.settings.get<string>('primary_model')) || 'llama-3.3-70b-versatile';
+    const temperature = (await db.settings.get<number>('temperature')) ?? 0.3;
 
-      if (response && response.trim().length > 0) {
-        logger.info('Primary LLM (Gemini) query completed successfully.');
-        return response.trim();
-      }
-      throw new Error('Gemini returned an empty response');
-    } catch (geminiError: any) {
-      logger.warn('Primary LLM (Gemini) query failed. Error Details:', {
-        message: geminiError?.message,
-        stack: geminiError?.stack,
-      });
-      logger.info('Attempting Fallback LLM: Groq Llama 3 8B');
+    // Check if Groq is the primary model (starts with llama or mixtral)
+    const isGroqPrimary = configuredModel.includes('llama') || configuredModel.includes('mixtral');
 
-      // 2. Try Groq (Llama 3 8B) with retry
+    if (isGroqPrimary) {
+      // 1. Try Groq as Primary
       try {
+        logger.info(`Querying Primary LLM (Groq): ${configuredModel}`);
         const response = await withRetry(
-          () => generateGroqText(prompt, SYSTEM_INSTRUCTION, GROQ_MODELS.LLAMA_3_8B),
+          () => generateGroqText(prompt, SYSTEM_INSTRUCTION, configuredModel as any, temperature),
           { retries: 2, delayMs: 300 }
         );
 
         if (response && response.trim().length > 0) {
-          logger.info('Fallback LLM (Groq) query completed successfully.');
+          logger.info('Primary LLM (Groq) query completed successfully.');
           return response.trim();
         }
         throw new Error('Groq returned an empty response');
       } catch (groqError: any) {
-        logger.error('Both Primary and Fallback LLMs failed to respond after retries.', {
-          groqError: {
-            message: groqError?.message,
-            stack: groqError?.stack,
-          },
+        logger.warn('Primary LLM (Groq) query failed. Error Details:', {
+          message: groqError?.message,
+          stack: groqError?.stack,
         });
-        throw new Error('LLM generation failed completely');
+
+        // 2. Try Gemini as Fallback
+        logger.info('Attempting Fallback LLM: Google Gemini 2.5 Flash');
+        try {
+          const isQuotaError = (err: any) => {
+            const msg = String(err?.message || '').toLowerCase();
+            return msg.includes('429') || msg.includes('resource_exhausted') || err?.status === 429;
+          };
+
+          const response = await withRetry(
+            () =>
+              generateGeminiText(
+                prompt,
+                SYSTEM_INSTRUCTION,
+                GEMINI_MODELS.GEMINI_2_5_FLASH,
+                temperature
+              ),
+            {
+              retries: 2,
+              delayMs: 300,
+              shouldRetry: (err) => !isQuotaError(err), // Instantly skip retries on 429 quota exhaustion
+            }
+          );
+
+          if (response && response.trim().length > 0) {
+            logger.info('Fallback LLM (Gemini) query completed successfully.');
+            return response.trim();
+          }
+          throw new Error('Gemini returned an empty response');
+        } catch (geminiError: any) {
+          logger.error('Both Primary (Groq) and Fallback (Gemini) LLMs failed to respond.', {
+            geminiError: {
+              message: geminiError?.message,
+              stack: geminiError?.stack,
+            },
+          });
+          throw new Error('LLM generation failed completely');
+        }
+      }
+    } else {
+      // 1. Try Gemini as Primary
+      try {
+        logger.info(`Querying Primary LLM (Gemini): ${configuredModel}`);
+
+        const isQuotaError = (err: any) => {
+          const msg = String(err?.message || '').toLowerCase();
+          return msg.includes('429') || msg.includes('resource_exhausted') || err?.status === 429;
+        };
+
+        const response = await withRetry(
+          () => generateGeminiText(prompt, SYSTEM_INSTRUCTION, configuredModel as any, temperature),
+          {
+            retries: 2,
+            delayMs: 300,
+            shouldRetry: (err) => !isQuotaError(err), // Instantly skip retries on 429 quota exhaustion
+          }
+        );
+
+        if (response && response.trim().length > 0) {
+          logger.info('Primary LLM (Gemini) query completed successfully.');
+          return response.trim();
+        }
+        throw new Error('Gemini returned an empty response');
+      } catch (geminiError: any) {
+        logger.warn('Primary LLM (Gemini) query failed. Error Details:', {
+          message: geminiError?.message,
+          stack: geminiError?.stack,
+        });
+
+        // 2. Try Groq as Fallback
+        const fallbackModel = GROQ_MODELS.LLAMA_3_3_70B;
+        logger.info(`Attempting Fallback LLM (Groq): ${fallbackModel}`);
+        try {
+          const response = await withRetry(
+            () => generateGroqText(prompt, SYSTEM_INSTRUCTION, fallbackModel, temperature),
+            { retries: 2, delayMs: 300 }
+          );
+
+          if (response && response.trim().length > 0) {
+            logger.info('Fallback LLM (Groq) query completed successfully.');
+            return response.trim();
+          }
+          throw new Error('Groq returned an empty response');
+        } catch (groqError: any) {
+          logger.error('Both Primary (Gemini) and Fallback (Groq) LLMs failed to respond.', {
+            groqError: {
+              message: groqError?.message,
+              stack: groqError?.stack,
+            },
+          });
+          throw new Error('LLM generation failed completely');
+        }
       }
     }
   }

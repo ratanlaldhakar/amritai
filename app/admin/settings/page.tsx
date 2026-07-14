@@ -11,7 +11,7 @@ export default function SettingsManager() {
 
   // Settings State matching database structures
   const [aiEnabled, setAiEnabled] = useState(true);
-  const [primaryModel, setPrimaryModel] = useState('gemini-2.5-flash');
+  const [primaryModel, setPrimaryModel] = useState('llama-3.3-70b-versatile');
   const [temperature, setTemperature] = useState(0.3);
   const [monthlyFee, setMonthlyFee] = useState(1500);
   const [quarterlyFee, setQuarterlyFee] = useState(4000);
@@ -203,9 +203,10 @@ export default function SettingsManager() {
                   onChange={(e) => setPrimaryModel(e.target.value)}
                   className="h-10 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none text-foreground"
                 >
+                  <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Groq - Default)</option>
+                  <option value="llama-3.1-8b-instant">Llama 3.1 8B (Groq - Fast)</option>
                   <option value="gemini-2.5-flash">Google Gemini 2.5 Flash</option>
                   <option value="gemini-2.5-pro">Google Gemini 2.5 Pro</option>
-                  <option value="groq-llama-3-70b">Llama 3 70b (via Groq)</option>
                 </select>
               </div>
 

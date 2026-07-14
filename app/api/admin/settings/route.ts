@@ -28,7 +28,7 @@ export async function GET() {
       success: true,
       settings: {
         aiEnabled: aiEnabled ?? true,
-        primaryModel: primaryModel ?? 'gemini-2.5-flash',
+        primaryModel: primaryModel ?? 'llama-3.3-70b-versatile',
         temperature: temperature ?? 0.3,
         monthlyFee: monthlyFee ?? 1500,
         quarterlyFee: quarterlyFee ?? 4000,

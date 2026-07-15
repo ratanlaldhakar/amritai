@@ -61,126 +61,83 @@ export class AIBrainService {
   }
 
   private async queryLLM(prompt: string): Promise<string> {
-    const configuredModel =
-      (await db.settings.get<string>('primary_model')) || 'llama-3.3-70b-versatile';
     const temperature = (await db.settings.get<number>('temperature')) ?? 0.3;
 
-    // Check if Groq is the primary model (starts with llama or mixtral)
-    const isGroqPrimary = configuredModel.includes('llama') || configuredModel.includes('mixtral');
+    // Ordered queue of fallback models to try
+    const modelQueue: { provider: 'groq' | 'gemini'; model: string }[] = [
+      { provider: 'groq', model: GROQ_MODELS.LLAMA_3_3_70B },
+      { provider: 'gemini', model: GEMINI_MODELS.GEMINI_2_5_FLASH },
+      { provider: 'groq', model: GROQ_MODELS.LLAMA_3_1_8B },
+      { provider: 'groq', model: GROQ_MODELS.MIXTRAL_8X7B },
+    ];
 
-    if (isGroqPrimary) {
-      // 1. Try Groq as Primary
-      try {
-        logger.info(`Querying Primary LLM (Groq): ${configuredModel}`);
-        const response = await withRetry(
-          () => generateGroqText(prompt, SYSTEM_INSTRUCTION, configuredModel as any, temperature),
-          { retries: 2, delayMs: 300 }
-        );
-
-        if (response && response.trim().length > 0) {
-          logger.info('Primary LLM (Groq) query completed successfully.');
-          return response.trim();
+    // If there is a primary model configured in settings, put it at the top of the queue
+    try {
+      const configuredModel = await db.settings.get<string>('primary_model');
+      if (configuredModel) {
+        const isGemini = configuredModel.includes('gemini');
+        
+        // Remove configured model from queue if it already exists there to prevent duplicates
+        const idx = modelQueue.findIndex((m) => m.model === configuredModel);
+        if (idx !== -1) {
+          modelQueue.splice(idx, 1);
         }
-        throw new Error('Groq returned an empty response');
-      } catch (groqError: any) {
-        logger.warn('Primary LLM (Groq) query failed. Error Details:', {
-          message: groqError?.message,
-          stack: groqError?.stack,
+        
+        // Put the configured model first
+        modelQueue.unshift({
+          provider: isGemini ? 'gemini' : 'groq',
+          model: configuredModel,
         });
+      }
+    } catch (configErr) {
+      logger.warn('Failed to load primary model settings:', {}, configErr);
+    }
 
-        // 2. Try Gemini as Fallback
-        logger.info('Attempting Fallback LLM: Google Gemini 2.5 Flash');
-        try {
-          const isQuotaError = (err: any) => {
-            const msg = String(err?.message || '').toLowerCase();
-            return msg.includes('429') || msg.includes('resource_exhausted') || err?.status === 429;
-          };
+    // Try each model in the queue until one succeeds
+    for (const item of modelQueue) {
+      try {
+        logger.info(`Attempting LLM generation with [${item.provider}] model: ${item.model}`);
 
-          const response = await withRetry(
-            () =>
-              generateGeminiText(
-                prompt,
-                SYSTEM_INSTRUCTION,
-                GEMINI_MODELS.GEMINI_2_5_FLASH,
-                temperature
-              ),
+        let response: string | null = null;
+        if (item.provider === 'groq') {
+          response = await withRetry(
+            () => generateGroqText(prompt, SYSTEM_INSTRUCTION, item.model as any, temperature),
             {
-              retries: 2,
-              delayMs: 300,
-              shouldRetry: (err) => !isQuotaError(err), // Instantly skip retries on 429 quota exhaustion
+              retries: 1,
+              delayMs: 200,
+              shouldRetry: (err) => {
+                const msg = String(err?.message || '').toLowerCase();
+                // Do NOT retry on 429 rate limit error to switch to the next fallback model faster!
+                return !msg.includes('429') && !msg.includes('rate') && err?.status !== 429;
+              },
             }
           );
-
-          if (response && response.trim().length > 0) {
-            logger.info('Fallback LLM (Gemini) query completed successfully.');
-            return response.trim();
-          }
-          throw new Error('Gemini returned an empty response');
-        } catch (geminiError: any) {
-          logger.error('Both Primary (Groq) and Fallback (Gemini) LLMs failed to respond.', {
-            geminiError: {
-              message: geminiError?.message,
-              stack: geminiError?.stack,
-            },
-          });
-          throw new Error('LLM generation failed completely');
+        } else {
+          response = await withRetry(
+            () => generateGeminiText(prompt, SYSTEM_INSTRUCTION, item.model as any, temperature),
+            {
+              retries: 1,
+              delayMs: 200,
+              shouldRetry: (err) => {
+                const msg = String(err?.message || '').toLowerCase();
+                // Do NOT retry on 429 rate limit or resource exhausted to switch immediately
+                return !msg.includes('429') && !msg.includes('resource') && err?.status !== 429;
+              },
+            }
+          );
         }
-      }
-    } else {
-      // 1. Try Gemini as Primary
-      try {
-        logger.info(`Querying Primary LLM (Gemini): ${configuredModel}`);
-
-        const isQuotaError = (err: any) => {
-          const msg = String(err?.message || '').toLowerCase();
-          return msg.includes('429') || msg.includes('resource_exhausted') || err?.status === 429;
-        };
-
-        const response = await withRetry(
-          () => generateGeminiText(prompt, SYSTEM_INSTRUCTION, configuredModel as any, temperature),
-          {
-            retries: 2,
-            delayMs: 300,
-            shouldRetry: (err) => !isQuotaError(err), // Instantly skip retries on 429 quota exhaustion
-          }
-        );
 
         if (response && response.trim().length > 0) {
-          logger.info('Primary LLM (Gemini) query completed successfully.');
+          logger.info(`LLM generation succeeded with model: ${item.model}`);
           return response.trim();
         }
-        throw new Error('Gemini returned an empty response');
-      } catch (geminiError: any) {
-        logger.warn('Primary LLM (Gemini) query failed. Error Details:', {
-          message: geminiError?.message,
-          stack: geminiError?.stack,
-        });
-
-        // 2. Try Groq as Fallback
-        const fallbackModel = GROQ_MODELS.LLAMA_3_3_70B;
-        logger.info(`Attempting Fallback LLM (Groq): ${fallbackModel}`);
-        try {
-          const response = await withRetry(
-            () => generateGroqText(prompt, SYSTEM_INSTRUCTION, fallbackModel, temperature),
-            { retries: 2, delayMs: 300 }
-          );
-
-          if (response && response.trim().length > 0) {
-            logger.info('Fallback LLM (Groq) query completed successfully.');
-            return response.trim();
-          }
-          throw new Error('Groq returned an empty response');
-        } catch (groqError: any) {
-          logger.error('Both Primary (Gemini) and Fallback (Groq) LLMs failed to respond.', {
-            groqError: {
-              message: groqError?.message,
-              stack: groqError?.stack,
-            },
-          });
-          throw new Error('LLM generation failed completely');
-        }
+        throw new Error('LLM returned an empty response');
+      } catch (modelErr: any) {
+        logger.warn(`Model ${item.model} failed. Error: ${modelErr.message}. Trying next fallback model...`);
       }
     }
+
+    throw new Error('All primary and fallback LLM models in queue failed to respond.');
   }
 
   /**

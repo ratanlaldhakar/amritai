@@ -217,10 +217,13 @@ export class AIBrainService {
       logger.error('Failed to check thread ai_enabled status:', {}, err);
     }
 
-    // Precheck: Stop AI and create human ticket immediately if handover keywords matched
+    // Precheck: Stop AI and create human ticket immediately if handover keywords matched as whole words
     const lowerMessage = messageText.toLowerCase();
     const handoverKeywords = ['teacher', 'call', 'refund', 'complaint', 'human', 'support'];
-    const hasHandoverKeyword = handoverKeywords.some((keyword) => lowerMessage.includes(keyword));
+    const hasHandoverKeyword = handoverKeywords.some((keyword) => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+      return regex.test(lowerMessage);
+    });
 
     if (hasHandoverKeyword) {
       logger.info('Immediate human handover triggered by message content keywords', {

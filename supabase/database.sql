@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS public.faqs (
     question TEXT NOT NULL,
     answer TEXT NOT NULL,
     is_published BOOLEAN DEFAULT true NOT NULL,
+    priority INTEGER DEFAULT 0 NOT NULL,
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );

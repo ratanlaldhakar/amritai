@@ -12,6 +12,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       question: body.question,
       answer: body.answer,
       is_published: body.is_published,
+      priority: Number(body.priority ?? 0),
     };
 
     const updated = await db.faqs.update(id, updates);

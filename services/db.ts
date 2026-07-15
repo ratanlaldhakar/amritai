@@ -1,5 +1,6 @@
 import { getSupabaseServiceRole } from '@/lib/supabase';
 import { logger } from '@/lib/logger';
+import { memoryCache } from '@/utils/cache';
 import {
   Student,
   StudentInsert,
@@ -144,6 +145,7 @@ export const db = {
         .from('faqs')
         .select('*')
         .eq('is_published', true)
+        .order('priority', { ascending: false })
         .order('category', { ascending: true });
 
       if (error) {
@@ -159,7 +161,8 @@ export const db = {
         .from('faqs')
         .select('*')
         .eq('category', category)
-        .eq('is_published', true);
+        .eq('is_published', true)
+        .order('priority', { ascending: false });
 
       if (error) {
         logger.error('db.faqs.getByCategory error:', { category }, error);
@@ -173,6 +176,7 @@ export const db = {
       const { data, error } = await supabase
         .from('faqs')
         .select('*')
+        .order('priority', { ascending: false })
         .order('category', { ascending: true });
 
       if (error) {
@@ -190,6 +194,7 @@ export const db = {
         logger.error('db.faqs.create error:', { faq }, error);
         return null;
       }
+      memoryCache.delete('knowledge_faqs');
       return data;
     },
 
@@ -209,6 +214,7 @@ export const db = {
         logger.error('db.faqs.update error:', { id, updates }, error);
         return null;
       }
+      memoryCache.delete('knowledge_faqs');
       return data;
     },
 
@@ -220,6 +226,7 @@ export const db = {
         logger.error('db.faqs.delete error:', { id }, error);
         return false;
       }
+      memoryCache.delete('knowledge_faqs');
       return true;
     },
   },

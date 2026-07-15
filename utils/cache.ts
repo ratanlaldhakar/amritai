@@ -25,6 +25,10 @@ export class MemoryCache {
     return entry.value as T;
   }
 
+  delete(key: string): void {
+    this.cache.delete(key);
+  }
+
   clear(): void {
     this.cache.clear();
   }

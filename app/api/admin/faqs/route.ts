@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
       question: body.question,
       answer: body.answer,
       is_published: body.is_published ?? true,
+      priority: Number(body.priority ?? 0),
     });
 
     if (!created) {

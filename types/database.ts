@@ -46,6 +46,7 @@ export interface FAQ {
   question: string;
   answer: string;
   is_published: boolean;
+  priority: number;
   created_at: string;
   updated_at: string;
 }

@@ -201,12 +201,15 @@ export default function SettingsManager() {
                 <select
                   value={primaryModel}
                   onChange={(e) => setPrimaryModel(e.target.value)}
-                  className="h-10 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none text-foreground"
+                  className="h-10 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none text-foreground cursor-pointer"
                 >
                   <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Groq - Default)</option>
                   <option value="llama-3.1-8b-instant">Llama 3.1 8B (Groq - Fast)</option>
-                  <option value="gemini-2.5-flash">Google Gemini 2.5 Flash</option>
-                  <option value="gemini-2.5-pro">Google Gemini 2.5 Pro</option>
+                  <option value="llama-3.1-70b-versatile">Llama 3.1 70B (Groq - Versatile)</option>
+                  <option value="mixtral-8x7b-32768">Mixtral 8x7B (Groq)</option>
+                  <option value="gemma2-9b-it">Gemma 2 9B (Groq)</option>
+                  <option value="gemini-2.5-flash">Google Gemini 1.5 Flash (Stable)</option>
+                  <option value="gemini-2.5-pro">Google Gemini 1.5 Pro (Stable)</option>
                 </select>
               </div>
 

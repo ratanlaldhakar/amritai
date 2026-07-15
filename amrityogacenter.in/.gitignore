@@ -1,0 +1,24 @@
+# Local temporary/scratch development files
+check_js_syntax.py
+diagnose.py
+patch_db.py
+scratch_supabase.js
+scratch_check.js
+
+# Dependencies (if any are created in future)
+node_modules/
+.pnp
+.pnp.js
+
+# Testing and log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.system_generated/
+*.log
+
+# Editor & OS system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

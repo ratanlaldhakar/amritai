@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /admin/*
+Disallow: /private
+Disallow: /private/*
+
+Sitemap: https://amrityogacenter.in/sitemap.xml

@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amrit Yoga Blog: Scientific Wisdom & Healthy Living</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Explore our library of medically-accurate articles on Hatha foundations, Vinyasa flows, scientific breathing mechanics, meditation, and custom health therapies.">
+  <meta name="keywords" content="yoga blog, yoga articles, health guides, pranayama tutorial, meditation science">
+  <meta name="author" content="Amrit Yoga Center™">
+  <link rel="canonical" href="https://amrityogacenter.in/blog" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Amrit Yoga Blog: Scientific Wisdom & Healthy Living">
+  <meta property="og:description" content="Explore our library of medically-accurate articles on Hatha foundations, Vinyasa flows, scientific breathing mechanics, meditation, and custom health therapies.">
+  <meta property="og:image" content="https://amrityogacenter.in/images/logo.png">
+  <meta property="og:url" content="https://amrityogacenter.in/blog">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/css/style.css" id="theme-style-path">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* Simple UI overrides - Disable custom cursors and force default browser cursor */
+    .custom-cursor, .custom-cursor-follower {
+      display: none !important;
+    }
+    body, a, button, input, select, textarea, .nav-link, .btn {
+      cursor: auto !important;
+    }
+
+    .blog-hero {
+      padding: 160px 0 60px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(var(--color-saffron-rgb), 0.1) 0%, rgba(var(--color-saffron-rgb), 0.02) 100%);
+      border-bottom: 1px solid rgba(var(--color-saffron-rgb), 0.1);
+    }
+    .blog-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px 100px;
+    }
+    .text-gradient {
+      background: linear-gradient(135deg, var(--color-white) 30%, var(--color-saffron) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    body.light-theme .text-gradient {
+      background: linear-gradient(135deg, #111111 30%, var(--color-saffron) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Filter Tabs */
+    .filter-scroll-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 40px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(var(--color-saffron-rgb), 0.3) transparent;
+    }
+    .filter-scroll-wrapper::-webkit-scrollbar {
+      height: 6px;
+    }
+    .filter-scroll-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(var(--color-saffron-rgb), 0.3);
+      border-radius: 10px;
+    }
+    .filter-container {
+      display: flex;
+      gap: 12px;
+      width: max-content;
+      margin: 0 auto;
+      padding: 0 10px;
+    }
+    .filter-btn {
+      padding: 10px 22px;
+      border-radius: var(--radius-pill);
+      border: var(--glass-border);
+      background: var(--bg-card);
+      color: var(--color-text-secondary);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition-fast);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .filter-btn:hover {
+      border-color: rgba(var(--color-saffron-rgb), 0.35);
+      color: var(--color-saffron);
+    }
+    .filter-btn.active {
+      background: var(--color-saffron);
+      border-color: var(--color-saffron);
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(var(--color-saffron-rgb), 0.3);
+    }
+
+    /* Blog Grid */
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 30px;
+    }
+    .blog-card {
+      padding: 30px;
+      border-radius: var(--radius-md);
+      border: var(--glass-border);
+      background: var(--bg-card);
+      box-shadow: var(--glass-shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: var(--transition-fast);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      position: relative;
+    }
+    .blog-card:hover {
+      border-color: rgba(var(--color-saffron-rgb), 0.35);
+      transform: translateY(-5px);
+    }
+    .blog-card-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: rgba(var(--color-saffron-rgb), 0.1);
+      color: var(--color-saffron);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .blog-card-title {
+      font-size: 1.25rem;
+      font-family: var(--font-body);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-top: 0;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .blog-card-excerpt {
+      font-size: 0.95rem;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+      margin-top: 0;
+      margin-bottom: 25px;
+      flex-grow: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .blog-card-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-saffron);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: var(--transition-fast);
+    }
+    .blog-card-link i {
+      transition: transform var(--transition-fast);
+    }
+    .blog-card-link:hover {
+      opacity: 0.85;
+    }
+    .blog-card-link:hover i {
+      transform: translateX(4px);
+    }
+  </style>
+
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+      }
+    })();
+  </script>
+
+  <header class="header-glass scrolled" id="header">
+    <div class="nav-container">
+      <a href="/#hero" class="logo-wrapper">
+        <img src="/images/logo.png" class="logo-icon" alt="Amrit Yoga Center Logo">
+        <span class="logo-text">AMRIT<span> YOGA CENTER<sup>™</sup></span></span>
+      </a>
+      
+      <ul class="nav-menu" id="nav-menu">
+        <li><a href="/#hero" class="nav-link">Home</a></li>
+        <li><a href="/#about" class="nav-link">About</a></li>
+        <li><a href="/#services" class="nav-link">Services</a></li>
+        <li><a href="/#coach" class="nav-link">Coach</a></li>
+        <li><a href="/#gallery" class="nav-link">Gallery</a></li>
+        <li><a href="/#testimonials" class="nav-link">Reviews</a></li>
+        <li><a href="/#contact" class="nav-link">Contact</a></li>
+        <li class="mobile-only"><a href="/certificates" class="nav-link">Certificates</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+          <i class="fa-solid fa-moon"></i>
+          <i class="fa-solid fa-sun"></i>
+        </button>
+        
+        <a href="/certificates" class="nav-cert-btn"><i class="fa-solid fa-award"></i> <span>Certificate</span></a>
+        
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="blog-hero">
+    <div class="container" style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
+      <h1 class="text-gradient" style="font-size: 2.8rem; margin-bottom: 15px;">
+        Amrit Yoga Scientific Blog
+      </h1>
+      <p style="font-size: 1.15rem; color: var(--color-text-secondary); line-height: 1.6; max-width: 650px; margin: 0 auto;">
+        Discover medically-accurate research, posture guides, breathing biology, and wellness philosophies curated by Suresh Kumar.
+      </p>
+    </div>
+  </section>
+
+  <main class="blog-container">
+    <div class="filter-scroll-wrapper">
+      <div class="filter-container">
+        
+    <button class="filter-btn active" data-filter="all">
+      All Topics
+    </button>
+  
+    <button class="filter-btn" data-filter="beginners">
+      Beginners
+    </button>
+  
+    <button class="filter-btn" data-filter="weight-loss">
+      Weight Loss
+    </button>
+  
+    <button class="filter-btn" data-filter="womens-health">
+      Women's Health
+    </button>
+  
+    <button class="filter-btn" data-filter="pain-relief">
+      Pain Relief
+    </button>
+  
+    <button class="filter-btn" data-filter="mental-health">
+      Mental Health
+    </button>
+  
+    <button class="filter-btn" data-filter="pranayama">
+      Pranayama
+    </button>
+  
+    <button class="filter-btn" data-filter="meditation">
+      Meditation
+    </button>
+  
+    <button class="filter-btn" data-filter="morning-routine">
+      Morning Routine
+    </button>
+  
+    <button class="filter-btn" data-filter="kids-yoga">
+      Kids Yoga
+    </button>
+  
+    <button class="filter-btn" data-filter="senior-yoga">
+      Senior Yoga
+    </button>
+  
+    <button class="filter-btn" data-filter="nutrition">
+      Nutrition
+    </button>
+  
+    <button class="filter-btn" data-filter="lifestyle">
+      Lifestyle
+    </button>
+  
+    <button class="filter-btn" data-filter="corporate-wellness">
+      Corporate Wellness
+    </button>
+  
+    <button class="filter-btn" data-filter="flexibility">
+      Flexibility
+    </button>
+  
+    <button class="filter-btn" data-filter="advanced-yoga">
+      Advanced Yoga
+    </button>
+  
+    <button class="filter-btn" data-filter="yoga-therapy">
+      Yoga Therapy
+    </button>
+  
+    <button class="filter-btn" data-filter="cardio-fitness">
+      Cardio & Stamina
+    </button>
+  
+    <button class="filter-btn" data-filter="sleep-wellness">
+      Sleep & Recovery
+    </button>
+  
+    <button class="filter-btn" data-filter="strength-building">
+      Strength & Stability
+    </button>
+  
+    <button class="filter-btn" data-filter="mind-body-connection">
+      Mind-Body Mastery
+    </button>
+  
+      </div>
+    </div>
+
+    <div class="blog-grid" id="blog-grid">
+      
+    <div class="blog-card" data-category="beginners">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Beginners</span>
+        <i class="fa-solid fa-graduation-cap" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Getting Started with Yoga: A Complete Guide for Absolute Beginners</h3>
+      <p class="blog-card-excerpt">Embark on your yoga journey safely. A comprehensive, medically-accurate guide to Hatha foundations, skeletal alignment, and breathing coordinates for beginners.</p>
+      <a href="/blog/beginners/getting-started-with-yoga" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="weight-loss">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Weight Loss</span>
+        <i class="fa-solid fa-fire" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Biology of Weight Loss: How Vinyasa Yoga Burns Fat Safely</h3>
+      <p class="blog-card-excerpt">Discover the scientific link between dynamic Vinyasa flows and caloric burn. Build lean muscle, boost metabolism, and shred fat safely at Amrit Yoga.</p>
+      <a href="/blog/weight-loss/vinyasa-yoga-burns-fat" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="womens-health">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Womens Health</span>
+        <i class="fa-solid fa-venus" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Yoga Poses for PCOS & Hormonal Balance: Guided Protocol</h3>
+      <p class="blog-card-excerpt">Manage PCOS, regulate thyroid levels, and restore hormonal balance naturally. A scientifically guided yoga protocol for women's health.</p>
+      <a href="/blog/womens-health/yoga-for-pcos-hormonal-balance" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="pain-relief">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Pain Relief</span>
+        <i class="fa-solid fa-hand-holding-medical" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Lower Back Pain Relief: 8 Poses & Decompression Guides</h3>
+      <p class="blog-card-excerpt">Cure back stiffness safely. Learn scientific spinal decompression stretches, core stabilization poses, and sciatica relief guides.</p>
+      <a href="/blog/pain-relief/lower-back-pain-relief-yoga" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="mental-health">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Mental Health</span>
+        <i class="fa-solid fa-brain" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Calming the Nervous System: Scientific Pranayama for Anxiety</h3>
+      <p class="blog-card-excerpt">Calming the Nervous System: Scientific Pranayama for Anxiety. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/mental-health/pranayama-for-anxiety-relief" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="pranayama">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Pranayama</span>
+        <i class="fa-solid fa-wind" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Scientific Breathing: Kapalbhati & Nadi Shodhana Mechanics</h3>
+      <p class="blog-card-excerpt">Scientific Breathing: Kapalbhati & Nadi Shodhana Mechanics. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/pranayama/scientific-breathing-mechanics" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="meditation">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Meditation</span>
+        <i class="fa-solid fa-spa" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Dhyana & Focus: How Meditation Alters Brain Wave Patterns</h3>
+      <p class="blog-card-excerpt">Dhyana & Focus: How Meditation Alters Brain Wave Patterns. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/meditation/meditation-alters-brain-patterns" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="morning-routine">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Morning Routine</span>
+        <i class="fa-solid fa-sun" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Ultimate Morning Routine: 15-Minute Sun Salutations</h3>
+      <p class="blog-card-excerpt">The Ultimate Morning Routine: 15-Minute Sun Salutations. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/morning-routine/ultimate-morning-yoga-routine" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="kids-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Kids Yoga</span>
+        <i class="fa-solid fa-child" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Spinal Growth & Focus: Why Children Need Yoga Training</h3>
+      <p class="blog-card-excerpt">Spinal Growth & Focus: Why Children Need Yoga Training. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/kids-yoga/kids-posture-and-concentration" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="senior-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Senior Yoga</span>
+        <i class="fa-solid fa-person-walking-with-cane" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Active Longevity: Restorative Yoga & Mobility for Seniors</h3>
+      <p class="blog-card-excerpt">Active Longevity: Restorative Yoga & Mobility for Seniors. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/senior-yoga/active-longevity-senior-yoga" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="nutrition">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Nutrition</span>
+        <i class="fa-solid fa-apple-whole" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Sattvic Nutrition: The Best Diet Plan for Yoga Practice</h3>
+      <p class="blog-card-excerpt">Sattvic Nutrition: The Best Diet Plan for Yoga Practice. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/nutrition/sattvic-diet-yoga-practitioners" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="lifestyle">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Lifestyle</span>
+        <i class="fa-solid fa-heart" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Yoga vs Gym: Biomechanical Differences & Spine Health</h3>
+      <p class="blog-card-excerpt">Yoga vs Gym: Biomechanical Differences & Spine Health. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/lifestyle/yoga-vs-gym-comparison" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="corporate-wellness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Corporate Wellness</span>
+        <i class="fa-solid fa-briefcase" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Desk Ergonomics: 10 Stretches and Breathing for Office Workers</h3>
+      <p class="blog-card-excerpt">Desk Ergonomics: 10 Stretches and Breathing for Office Workers. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/corporate-wellness/desk-stretches-office-workers" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="flexibility">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Flexibility</span>
+        <i class="fa-solid fa-child-reaching" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Physiology of Stretching: Unlocking Hamstrings & Hips</h3>
+      <p class="blog-card-excerpt">The Physiology of Stretching: Unlocking Hamstrings & Hips. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/flexibility/physiology-of-stretching-safely" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="advanced-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Advanced Yoga</span>
+        <i class="fa-solid fa-award" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Mastering Sirsasana: Step-by-Step Headstand Guide</h3>
+      <p class="blog-card-excerpt">Mastering Sirsasana: Step-by-Step Headstand Guide. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/advanced-yoga/mastering-sirsasana-headstand" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="yoga-therapy">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Yoga Therapy</span>
+        <i class="fa-solid fa-house-medical" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Therapeutic Yoga: Managing Thyroid & Diabetes naturally</h3>
+      <p class="blog-card-excerpt">Therapeutic Yoga: Managing Thyroid & Diabetes naturally. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/yoga-therapy/glandular-stretches-thyroid-diabetes" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="beginners">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Beginners</span>
+        <i class="fa-solid fa-graduation-cap" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Hatha vs Ashtanga vs Vinyasa: Choosing Your Style</h3>
+      <p class="blog-card-excerpt">Hatha vs Ashtanga vs Vinyasa: Choosing Your Style. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/beginners/hatha-vs-ashtanga-vinyasa-styles" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="womens-health">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Womens Health</span>
+        <i class="fa-solid fa-venus" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Pelvic Floor Strengthening: Yoga for Postnatal Recovery</h3>
+      <p class="blog-card-excerpt">Pelvic Floor Strengthening: Yoga for Postnatal Recovery. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/womens-health/pelvic-floor-postnatal-recovery" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="pain-relief">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Pain Relief</span>
+        <i class="fa-solid fa-hand-holding-medical" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Cervical Neck Pain Relief: Gentle Stretches for Posture</h3>
+      <p class="blog-card-excerpt">Cervical Neck Pain Relief: Gentle Stretches for Posture. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/pain-relief/cervical-neck-pain-stretches" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="meditation">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Meditation</span>
+        <i class="fa-solid fa-spa" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Mindfulness for Stress: Activating Parasympathetic Response</h3>
+      <p class="blog-card-excerpt">Mindfulness for Stress: Activating Parasympathetic Response. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/meditation/mindfulness-calms-parasympathetic" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="beginners">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Beginners</span>
+        <i class="fa-solid fa-graduation-cap" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Top 10 Common Yoga Mistakes Beginners Make (And How to Fix Them)</h3>
+      <p class="blog-card-excerpt">Top 10 Common Yoga Mistakes Beginners Make (And How to Fix Them). Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/beginners/beginner-yoga-mistakes" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="beginners">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Beginners</span>
+        <i class="fa-solid fa-graduation-cap" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Essential Guide to Yoga Props: Blocks, Straps, and Bolsters</h3>
+      <p class="blog-card-excerpt">The Essential Guide to Yoga Props: Blocks, Straps, and Bolsters. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/beginners/essential-yoga-props-guide" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="beginners">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Beginners</span>
+        <i class="fa-solid fa-graduation-cap" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">How to Build a Consistent Daily Home Yoga Practice</h3>
+      <p class="blog-card-excerpt">How to Build a Consistent Daily Home Yoga Practice. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/beginners/daily-home-yoga-practice" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="weight-loss">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Weight Loss</span>
+        <i class="fa-solid fa-fire" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">8 Powerful Yoga Poses to Boost Metabolism and Burn Calories</h3>
+      <p class="blog-card-excerpt">8 Powerful Yoga Poses to Boost Metabolism and Burn Calories. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/weight-loss/yoga-poses-to-boost-metabolism" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="weight-loss">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Weight Loss</span>
+        <i class="fa-solid fa-fire" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Power Yoga vs. Cardio: Which is Better for Fat Loss?</h3>
+      <p class="blog-card-excerpt">Power Yoga vs. Cardio: Which is Better for Fat Loss?. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/weight-loss/power-yoga-vs-cardio-fat-loss" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="weight-loss">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Weight Loss</span>
+        <i class="fa-solid fa-fire" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Role of Core Locks (Bandhas) in Weight Loss Yoga</h3>
+      <p class="blog-card-excerpt">The Role of Core Locks (Bandhas) in Weight Loss Yoga. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/weight-loss/core-locks-bandhas-weight-loss" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="weight-loss">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Weight Loss</span>
+        <i class="fa-solid fa-fire" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Physiology of Hot Yoga: Caloric Burn and Sweat Science</h3>
+      <p class="blog-card-excerpt">The Physiology of Hot Yoga: Caloric Burn and Sweat Science. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/weight-loss/hot-yoga-caloric-burn-science" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="womens-health">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Womens Health</span>
+        <i class="fa-solid fa-venus" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Prenatal Yoga: Safe Practices and Postures for Each Trimester</h3>
+      <p class="blog-card-excerpt">Prenatal Yoga: Safe Practices and Postures for Each Trimester. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/womens-health/prenatal-yoga-safe-trimesters" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="womens-health">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Womens Health</span>
+        <i class="fa-solid fa-venus" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Yoga for Menopause: Managing Hot Flashes and Emotional Balance</h3>
+      <p class="blog-card-excerpt">Yoga for Menopause: Managing Hot Flashes and Emotional Balance. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/womens-health/yoga-menopause-symptom-management" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="womens-health">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Womens Health</span>
+        <i class="fa-solid fa-venus" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Regulating Your Thyroid: Endocrine-Stimulating Yoga Postures</h3>
+      <p class="blog-card-excerpt">Regulating Your Thyroid: Endocrine-Stimulating Yoga Postures. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/womens-health/thyroid-regulation-endocrine-yoga" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="pain-relief">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Pain Relief</span>
+        <i class="fa-solid fa-hand-holding-medical" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Knee Pain Relief: Yoga Sequences for Joint Stabilization</h3>
+      <p class="blog-card-excerpt">Knee Pain Relief: Yoga Sequences for Joint Stabilization. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/pain-relief/knee-pain-relief-stabilization" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="pain-relief">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Pain Relief</span>
+        <i class="fa-solid fa-hand-holding-medical" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Sciatica Pain Management: Safe Yoga Stretches for Nerve Relief</h3>
+      <p class="blog-card-excerpt">Sciatica Pain Management: Safe Yoga Stretches for Nerve Relief. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/pain-relief/sciatica-pain-management-stretches" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="pain-relief">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Pain Relief</span>
+        <i class="fa-solid fa-hand-holding-medical" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Shoulder Mobility: Opening Tight Chests and Rotator Cuffs</h3>
+      <p class="blog-card-excerpt">Shoulder Mobility: Opening Tight Chests and Rotator Cuffs. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/pain-relief/shoulder-mobility-opening-chest" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="mental-health">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Mental Health</span>
+        <i class="fa-solid fa-brain" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Yoga for Depression: Postures to Elevate Mood and Energy</h3>
+      <p class="blog-card-excerpt">Yoga for Depression: Postures to Elevate Mood and Energy. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/mental-health/yoga-depression-mood-elevation" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="mental-health">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Mental Health</span>
+        <i class="fa-solid fa-brain" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Easing Insomnia: A Restorative Evening Yoga Routine for Sleep</h3>
+      <p class="blog-card-excerpt">Easing Insomnia: A Restorative Evening Yoga Routine for Sleep. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/mental-health/easing-insomnia-restorative-sleep" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="mental-health">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Mental Health</span>
+        <i class="fa-solid fa-brain" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Science of Vagus Nerve Stimulation Through Yoga</h3>
+      <p class="blog-card-excerpt">The Science of Vagus Nerve Stimulation Through Yoga. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/mental-health/vagus-nerve-stimulation-science" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="pranayama">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Pranayama</span>
+        <i class="fa-solid fa-wind" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Alternating Nostril Breathing (Nadi Shodhana): Balance Your Brain</h3>
+      <p class="blog-card-excerpt">Alternating Nostril Breathing (Nadi Shodhana): Balance Your Brain. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/pranayama/nadi-shodhana-alternate-nostril" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="pranayama">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Pranayama</span>
+        <i class="fa-solid fa-wind" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Ujjayi Pranayama: The Ocean Breath for Focus and Stamina</h3>
+      <p class="blog-card-excerpt">Ujjayi Pranayama: The Ocean Breath for Focus and Stamina. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/pranayama/ujjayi-ocean-breath-stamina" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="pranayama">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Pranayama</span>
+        <i class="fa-solid fa-wind" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Kapalabhati: The Skull-Shining Breath for Detoxification</h3>
+      <p class="blog-card-excerpt">Kapalabhati: The Skull-Shining Breath for Detoxification. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/pranayama/kapalabhati-skull-shining-detox" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="pranayama">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Pranayama</span>
+        <i class="fa-solid fa-wind" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Bhastrika Pranayama: Bellows Breath for Vitality and Oxygenation</h3>
+      <p class="blog-card-excerpt">Bhastrika Pranayama: Bellows Breath for Vitality and Oxygenation. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/pranayama/bhastrika-bellows-breath-vitality" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="meditation">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Meditation</span>
+        <i class="fa-solid fa-spa" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Yoga Nidra: The Science of Conscious Deep Sleep</h3>
+      <p class="blog-card-excerpt">Yoga Nidra: The Science of Conscious Deep Sleep. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/meditation/yoga-nidra-conscious-deep-sleep" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="meditation">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Meditation</span>
+        <i class="fa-solid fa-spa" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Introduction to Vipassana: Developing Clear Awareness</h3>
+      <p class="blog-card-excerpt">Introduction to Vipassana: Developing Clear Awareness. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/meditation/vipassana-developing-clear-awareness" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="meditation">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Meditation</span>
+        <i class="fa-solid fa-spa" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Chakra Meditation: Balancing Endocrine Coordinates</h3>
+      <p class="blog-card-excerpt">Chakra Meditation: Balancing Endocrine Coordinates. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/meditation/chakra-meditation-endocrine-balance" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="morning-routine">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Morning Routine</span>
+        <i class="fa-solid fa-sun" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">15-Minute Energizing Yoga Flow to Start Your Day</h3>
+      <p class="blog-card-excerpt">15-Minute Energizing Yoga Flow to Start Your Day. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/morning-routine/energizing-morning-yoga-flow" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="morning-routine">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Morning Routine</span>
+        <i class="fa-solid fa-sun" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Physiology of Stretching First Thing in the Morning</h3>
+      <p class="blog-card-excerpt">The Physiology of Stretching First Thing in the Morning. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/morning-routine/physiology-morning-stretching" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="morning-routine">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Morning Routine</span>
+        <i class="fa-solid fa-sun" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Morning Meditation: Setting Daily Intentions for Focus</h3>
+      <p class="blog-card-excerpt">Morning Meditation: Setting Daily Intentions for Focus. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/morning-routine/morning-meditation-intentions" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="morning-routine">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Morning Routine</span>
+        <i class="fa-solid fa-sun" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Sun Salutation A vs. Sun Salutation B: Core Differences</h3>
+      <p class="blog-card-excerpt">Sun Salutation A vs. Sun Salutation B: Core Differences. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/morning-routine/suryanamaskar-a-vs-b-alignment" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="kids-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Kids Yoga</span>
+        <i class="fa-solid fa-child" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Yoga for ADHD: Enhancing Attention Span in Children</h3>
+      <p class="blog-card-excerpt">Yoga for ADHD: Enhancing Attention Span in Children. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/kids-yoga/yoga-adhd-attention-span" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="kids-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Kids Yoga</span>
+        <i class="fa-solid fa-child" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Safe Stretching for Growing Joints: Kids Yoga Essentials</h3>
+      <p class="blog-card-excerpt">Safe Stretching for Growing Joints: Kids Yoga Essentials. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/kids-yoga/safe-stretching-growing-joints" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="kids-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Kids Yoga</span>
+        <i class="fa-solid fa-child" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Breathing Games: Teaching Breath Control to Kids</h3>
+      <p class="blog-card-excerpt">Breathing Games: Teaching Breath Control to Kids. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/kids-yoga/breathing-games-kids-lung-control" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="kids-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Kids Yoga</span>
+        <i class="fa-solid fa-child" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Building Confidence in Children Through Balance Postures</h3>
+      <p class="blog-card-excerpt">Building Confidence in Children Through Balance Postures. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/kids-yoga/building-confidence-balance-kids" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="senior-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Senior Yoga</span>
+        <i class="fa-solid fa-person-walking-with-cane" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Chair Yoga: Accessible Poses for Limited Mobility</h3>
+      <p class="blog-card-excerpt">Chair Yoga: Accessible Poses for Limited Mobility. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/senior-yoga/chair-yoga-limited-mobility" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="senior-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Senior Yoga</span>
+        <i class="fa-solid fa-person-walking-with-cane" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Balance and Fall Prevention: Strength Exercises for Older Adults</h3>
+      <p class="blog-card-excerpt">Balance and Fall Prevention: Strength Exercises for Older Adults. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/senior-yoga/balance-fall-prevention-seniors" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="senior-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Senior Yoga</span>
+        <i class="fa-solid fa-person-walking-with-cane" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Joint Lubrication: Gentle Stretches for Arthritis Relief</h3>
+      <p class="blog-card-excerpt">Joint Lubrication: Gentle Stretches for Arthritis Relief. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/senior-yoga/joint-lubrication-arthritis-relief" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="senior-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Senior Yoga</span>
+        <i class="fa-solid fa-person-walking-with-cane" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Mindful Aging: Maintaining Cognitive Health Through Meditation</h3>
+      <p class="blog-card-excerpt">Mindful Aging: Maintaining Cognitive Health Through Meditation. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/senior-yoga/mindful-aging-cognitive-meditation" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="nutrition">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Nutrition</span>
+        <i class="fa-solid fa-apple-whole" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Pre-Yoga vs. Post-Yoga Nutrition: What and When to Eat</h3>
+      <p class="blog-card-excerpt">Pre-Yoga vs. Post-Yoga Nutrition: What and When to Eat. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/nutrition/pre-post-yoga-nutrition-meals" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="nutrition">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Nutrition</span>
+        <i class="fa-solid fa-apple-whole" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Hydration Science: Electrolytes and Muscle Flexibility</h3>
+      <p class="blog-card-excerpt">Hydration Science: Electrolytes and Muscle Flexibility. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/nutrition/hydration-science-muscle-flexibility" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="nutrition">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Nutrition</span>
+        <i class="fa-solid fa-apple-whole" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Improving Digestion (Agni) Through Yoga Postures</h3>
+      <p class="blog-card-excerpt">Improving Digestion (Agni) Through Yoga Postures. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/nutrition/improve-digestion-agni-yoga" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="nutrition">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Nutrition</span>
+        <i class="fa-solid fa-apple-whole" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Gut-Brain Axis: How Mindful Eating Reduces Inflammation</h3>
+      <p class="blog-card-excerpt">Gut-Brain Axis: How Mindful Eating Reduces Inflammation. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/nutrition/gut-brain-axis-mindful-eating" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="lifestyle">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Lifestyle</span>
+        <i class="fa-solid fa-heart" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Yamas: Living Ethically for Peace of Mind</h3>
+      <p class="blog-card-excerpt">The Yamas: Living Ethically for Peace of Mind. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/lifestyle/yamas-ethical-living-peace" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="lifestyle">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Lifestyle</span>
+        <i class="fa-solid fa-heart" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Niyamas: Personal Disciplines for Inner Growth</h3>
+      <p class="blog-card-excerpt">The Niyamas: Personal Disciplines for Inner Growth. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/lifestyle/niyamas-personal-disciplines-growth" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="lifestyle">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Lifestyle</span>
+        <i class="fa-solid fa-heart" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Digital Detox: Using Yoga to Unplug and Reconnect</h3>
+      <p class="blog-card-excerpt">Digital Detox: Using Yoga to Unplug and Reconnect. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/lifestyle/digital-detox-unplug-reconnect" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="lifestyle">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Lifestyle</span>
+        <i class="fa-solid fa-heart" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">How to Create a Sacred Meditation Space at Home</h3>
+      <p class="blog-card-excerpt">How to Create a Sacred Meditation Space at Home. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/lifestyle/sacred-meditation-space-home" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="corporate-wellness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Corporate Wellness</span>
+        <i class="fa-solid fa-briefcase" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Preventing Carpal Tunnel: Hand and Wrist Stretches</h3>
+      <p class="blog-card-excerpt">Preventing Carpal Tunnel: Hand and Wrist Stretches. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/corporate-wellness/preventing-carpal-tunnel-stretches" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="corporate-wellness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Corporate Wellness</span>
+        <i class="fa-solid fa-briefcase" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">5-Minute Chair Stretches for Midday Stress Relief</h3>
+      <p class="blog-card-excerpt">5-Minute Chair Stretches for Midday Stress Relief. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/corporate-wellness/chair-stretches-midday-relief" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="corporate-wellness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Corporate Wellness</span>
+        <i class="fa-solid fa-briefcase" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Ergonomics at the Desk: Spine-Friendly Sitting Positions</h3>
+      <p class="blog-card-excerpt">Ergonomics at the Desk: Spine-Friendly Sitting Positions. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/corporate-wellness/desk-ergonomics-spine-sitting" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="corporate-wellness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Corporate Wellness</span>
+        <i class="fa-solid fa-briefcase" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Combating Screen Fatigue: Eye Exercises and Breathing Breaks</h3>
+      <p class="blog-card-excerpt">Combating Screen Fatigue: Eye Exercises and Breathing Breaks. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/corporate-wellness/screen-fatigue-eye-exercises" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="flexibility">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Flexibility</span>
+        <i class="fa-solid fa-child-reaching" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Hip Openers: Releasing Tight Psoas and Pelvic Tension</h3>
+      <p class="blog-card-excerpt">Hip Openers: Releasing Tight Psoas and Pelvic Tension. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/flexibility/hip-openers-psoas-pelvic-tension" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="flexibility">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Flexibility</span>
+        <i class="fa-solid fa-child-reaching" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Anatomy of Backbends: Extending the Thoracic Spine</h3>
+      <p class="blog-card-excerpt">The Anatomy of Backbends: Extending the Thoracic Spine. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/flexibility/anatomy-backbends-thoracic-spine" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="flexibility">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Flexibility</span>
+        <i class="fa-solid fa-child-reaching" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Fascia Release: The Science of Connective Tissue Health</h3>
+      <p class="blog-card-excerpt">Fascia Release: The Science of Connective Tissue Health. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/flexibility/fascia-release-connective-tissue" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="flexibility">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Flexibility</span>
+        <i class="fa-solid fa-child-reaching" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">How to Safely Increase Joint Range of Motion</h3>
+      <p class="blog-card-excerpt">How to Safely Increase Joint Range of Motion. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/flexibility/safely-increase-joint-range" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="advanced-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Advanced Yoga</span>
+        <i class="fa-solid fa-award" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Arm Balances: Crow Pose to Handstand Progression</h3>
+      <p class="blog-card-excerpt">Arm Balances: Crow Pose to Handstand Progression. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/advanced-yoga/arm-balances-crow-to-handstand" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="advanced-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Advanced Yoga</span>
+        <i class="fa-solid fa-award" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Mastering Split Pose (Hanumanasana) Safely</h3>
+      <p class="blog-card-excerpt">Mastering Split Pose (Hanumanasana) Safely. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/advanced-yoga/mastering-splits-hanumanasana" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="advanced-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Advanced Yoga</span>
+        <i class="fa-solid fa-award" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Safe Inversions: Benefits of Reversing Blood Flow</h3>
+      <p class="blog-card-excerpt">Safe Inversions: Benefits of Reversing Blood Flow. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/advanced-yoga/safe-inversions-reversed-blood" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="advanced-yoga">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Advanced Yoga</span>
+        <i class="fa-solid fa-award" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Strengthening Core Stability for Advanced Balancing</h3>
+      <p class="blog-card-excerpt">Strengthening Core Stability for Advanced Balancing. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/advanced-yoga/strengthening-core-stability" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="yoga-therapy">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Yoga Therapy</span>
+        <i class="fa-solid fa-house-medical" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Yoga for Hypertension: Postures to Lower Blood Pressure</h3>
+      <p class="blog-card-excerpt">Yoga for Hypertension: Postures to Lower Blood Pressure. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/yoga-therapy/hypertension-yoga-lower-blood-pressure" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="yoga-therapy">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Yoga Therapy</span>
+        <i class="fa-solid fa-house-medical" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Managing Asthma: Chest Opening and Breath Control</h3>
+      <p class="blog-card-excerpt">Managing Asthma: Chest Opening and Breath Control. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/yoga-therapy/asthma-management-chest-breath" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="yoga-therapy">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Yoga Therapy</span>
+        <i class="fa-solid fa-house-medical" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Rheumatoid Arthritis: Gentle Movement Therapy</h3>
+      <p class="blog-card-excerpt">Rheumatoid Arthritis: Gentle Movement Therapy. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/yoga-therapy/rheumatoid-arthritis-movement-therapy" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="yoga-therapy">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Yoga Therapy</span>
+        <i class="fa-solid fa-house-medical" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Relieving Chronic Fatigue Syndrome Through Restorative Yoga</h3>
+      <p class="blog-card-excerpt">Relieving Chronic Fatigue Syndrome Through Restorative Yoga. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/yoga-therapy/chronic-fatigue-restorative-yoga" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="cardio-fitness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Cardio Fitness</span>
+        <i class="fa-solid fa-heart-pulse" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Cardiovascular Endurance: Integrating HIIT and Yoga Flows</h3>
+      <p class="blog-card-excerpt">Cardiovascular Endurance: Integrating HIIT and Yoga Flows. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/cardio-fitness/cardio-endurance-hiit-yoga-flows" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="cardio-fitness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Cardio Fitness</span>
+        <i class="fa-solid fa-heart-pulse" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Building Lung Capacity for High-Intensity Sports</h3>
+      <p class="blog-card-excerpt">Building Lung Capacity for High-Intensity Sports. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/cardio-fitness/lung-capacity-athletic-sports" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="cardio-fitness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Cardio Fitness</span>
+        <i class="fa-solid fa-heart-pulse" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Athletic Stamina: Breath Regulation During Stress</h3>
+      <p class="blog-card-excerpt">Athletic Stamina: Breath Regulation During Stress. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/cardio-fitness/athletic-stamina-breath-regulation" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="cardio-fitness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Cardio Fitness</span>
+        <i class="fa-solid fa-heart-pulse" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Dynamic Sun Salutations for Aerobic Conditioning</h3>
+      <p class="blog-card-excerpt">Dynamic Sun Salutations for Aerobic Conditioning. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/cardio-fitness/dynamic-suryanamaskar-aerobic" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="cardio-fitness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Cardio Fitness</span>
+        <i class="fa-solid fa-heart-pulse" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Interval Vinyasa: Boosting Metabolism and VO2 Max</h3>
+      <p class="blog-card-excerpt">Interval Vinyasa: Boosting Metabolism and VO2 Max. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/cardio-fitness/interval-vinyasa-metabolism-vo2max" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="sleep-wellness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Sleep Wellness</span>
+        <i class="fa-solid fa-bed" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Biology of Deep Sleep: Restoring the Nervous System</h3>
+      <p class="blog-card-excerpt">The Biology of Deep Sleep: Restoring the Nervous System. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/sleep-wellness/sleep-biology-nervous-restoration" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="sleep-wellness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Sleep Wellness</span>
+        <i class="fa-solid fa-bed" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Progressive Muscle Relaxation Sequences for Insomnia</h3>
+      <p class="blog-card-excerpt">Progressive Muscle Relaxation Sequences for Insomnia. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/sleep-wellness/progressive-muscle-relaxation-insomnia" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="sleep-wellness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Sleep Wellness</span>
+        <i class="fa-solid fa-bed" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Evening Wind-Down: Relieving Daily Lumbar Tension</h3>
+      <p class="blog-card-excerpt">Evening Wind-Down: Relieving Daily Lumbar Tension. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/sleep-wellness/evening-winddown-lumbar-tension" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="sleep-wellness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Sleep Wellness</span>
+        <i class="fa-solid fa-bed" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Melatonin Booster: Inversions Before Bedtime</h3>
+      <p class="blog-card-excerpt">Melatonin Booster: Inversions Before Bedtime. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/sleep-wellness/melatonin-booster-inversions-bed" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="sleep-wellness">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Sleep Wellness</span>
+        <i class="fa-solid fa-bed" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Sleep Hygiene: Combining Breathing and Meditation</h3>
+      <p class="blog-card-excerpt">Sleep Hygiene: Combining Breathing and Meditation. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/sleep-wellness/sleep-hygiene-breathing-meditation" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="strength-building">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Strength Building</span>
+        <i class="fa-solid fa-dumbbell" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Isometric Strength: Holding Postures for Muscle Tone</h3>
+      <p class="blog-card-excerpt">Isometric Strength: Holding Postures for Muscle Tone. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/strength-building/isometric-strength-muscle-tone" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="strength-building">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Strength Building</span>
+        <i class="fa-solid fa-dumbbell" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Core Stabilization: The Transversus Abdominis Activation</h3>
+      <p class="blog-card-excerpt">Core Stabilization: The Transversus Abdominis Activation. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/strength-building/core-stabilization-transversus-abdominis" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="strength-building">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Strength Building</span>
+        <i class="fa-solid fa-dumbbell" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Leg Strength: Building Quadriceps and Glute Stability</h3>
+      <p class="blog-card-excerpt">Leg Strength: Building Quadriceps and Glute Stability. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/strength-building/leg-strength-quadriceps-glutes" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="strength-building">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Strength Building</span>
+        <i class="fa-solid fa-dumbbell" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Upper Body Conditioning: Plank to Chaturanga Alignments</h3>
+      <p class="blog-card-excerpt">Upper Body Conditioning: Plank to Chaturanga Alignments. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/strength-building/upperbody-conditioning-plank-chaturanga" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="strength-building">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Strength Building</span>
+        <i class="fa-solid fa-dumbbell" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Joint Stabilization: Preventing Hyperextension in Poses</h3>
+      <p class="blog-card-excerpt">Joint Stabilization: Preventing Hyperextension in Poses. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/strength-building/joint-stabilization-preventing-hyperextension" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="mind-body-connection">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Mind Body Connection</span>
+        <i class="fa-solid fa-eye" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Somatic Awareness: Reconnecting Mind and Muscle</h3>
+      <p class="blog-card-excerpt">Somatic Awareness: Reconnecting Mind and Muscle. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/mind-body-connection/somatic-awareness-mind-muscle" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="mind-body-connection">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Mind Body Connection</span>
+        <i class="fa-solid fa-eye" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Neuroplasticity: How Learning New Postures Alters the Brain</h3>
+      <p class="blog-card-excerpt">Neuroplasticity: How Learning New Postures Alters the Brain. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/mind-body-connection/neuroplasticity-yoga-brain-alteration" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="mind-body-connection">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Mind Body Connection</span>
+        <i class="fa-solid fa-eye" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Overcoming Fear: Inversions and Emotional Resilience</h3>
+      <p class="blog-card-excerpt">Overcoming Fear: Inversions and Emotional Resilience. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/mind-body-connection/overcoming-fear-inversions-resilience" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="mind-body-connection">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Mind Body Connection</span>
+        <i class="fa-solid fa-eye" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">The Flow State: Achieving Deep Concentration in Practice</h3>
+      <p class="blog-card-excerpt">The Flow State: Achieving Deep Concentration in Practice. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/mind-body-connection/flow-state-deep-concentration" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="mind-body-connection">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Mind Body Connection</span>
+        <i class="fa-solid fa-eye" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Integrating Sound Therapy (Chanting) and Mindful Breathing</h3>
+      <p class="blog-card-excerpt">Integrating Sound Therapy (Chanting) and Mindful Breathing. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/mind-body-connection/chanting-sound-therapy-breathing" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    <div class="blog-card" data-category="mind-body-connection">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <span class="blog-card-badge">Mind Body Connection</span>
+        <i class="fa-solid fa-eye" style="color: var(--color-saffron); font-size: 1.25rem; opacity: 0.85;"></i>
+      </div>
+      <h3 class="blog-card-title">Mind-Body Integration: Stretches for Complete Concentration</h3>
+      <p class="blog-card-excerpt">Mind-Body Integration: Stretches for Complete Concentration. Read a medically-accurate, 1800+ word scientific guide to Hatha alignments, breathing coordinates, and nervous system health.</p>
+      <a href="/blog/mind-body-connection/mind-body-meditation-focus" class="blog-card-link">
+        Read Article <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+    
+    </div>
+  </main>
+
+  <footer style="border-top: 1px solid rgba(255, 153, 51, 0.1);">
+    <div class="container footer-top" style="padding: 60px 20px;">
+      <div class="footer-brand">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+          <img src="/images/logo.png" style="width: 50px; height: 50px;" alt="Amrit Yoga Center Logo">
+          <h2 style="margin: 0; color: var(--color-white);">AMRIT YOGA CENTER</h2>
+        </div>
+        <p class="tagline" style="color: var(--color-text-secondary); line-height: 1.6;">An Ultimate Health, Mind & Soul Resolution</p>
+      </div>
+      
+      <div class="footer-links">
+        <h3>Academy Batches</h3>
+        <ul class="footer-links-list" style="list-style: none; padding: 0;">
+          <li><a href="/#services" style="color: var(--color-text-secondary); text-decoration: none;">Personal Yoga Classes</a></li>
+          <li><a href="/#services" style="color: var(--color-text-secondary); text-decoration: none;">Group Fitness Batches</a></li>
+          <li><a href="/#services" style="color: var(--color-text-secondary); text-decoration: none;">Kids Yoga Academy</a></li>
+          <li><a href="/#services" style="color: var(--color-text-secondary); text-decoration: none;">Competition Prep Teams</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-contact">
+        <h3>Admission Office</h3>
+        <div class="footer-contact-items" style="color: var(--color-text-secondary);">
+          <div class="footer-contact-item" style="margin-bottom: 12px;">
+            <i class="fa-solid fa-location-dot" style="margin-right: 8px; color: var(--color-saffron);"></i>
+            <span>3-M-7, Bapunagar, Near Vinay Stationers, Hospital Road, Bhilwara</span>
+          </div>
+          <div class="footer-contact-item">
+            <i class="fa-solid fa-phone" style="margin-right: 8px; color: var(--color-saffron);"></i>
+            <a href="tel:7737773384" style="color: var(--color-text-secondary); text-decoration: none;">+91 7737773384</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom" style="text-align: center; padding: 25px 20px; border-top: 1px solid rgba(255, 153, 51, 0.05); color: var(--color-text-secondary); font-size: 0.9rem;">
+      <p>&copy; 2026 Amrit Yoga Center<sup>™</sup>. All Rights Reserved. Designed for Health & Excellence.</p>
+    </div>
+  </footer>
+
+  <!-- CDN Script Integrations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  
+  <script src="/js/db.js?v=1.0.7"></script>
+  <script src="/js/app.js?v=1.0.6"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const buttons = document.querySelectorAll('.filter-btn');
+      const cards = document.querySelectorAll('.blog-card');
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const category = btn.getAttribute('data-filter');
+
+          cards.forEach(card => {
+            if (category === 'all' || card.getAttribute('data-category') === category) {
+              card.style.display = 'flex';
+              if (window.gsap) {
+                gsap.fromTo(card, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4 });
+              }
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>

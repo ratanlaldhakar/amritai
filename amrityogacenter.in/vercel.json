@@ -1,0 +1,10 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/certificates", "destination": "/certificates.html" },
+    { "source": "/certificate/:id", "destination": "/certificates.html?id=:id" },
+    { "source": "/admin/login", "destination": "/admin.html" },
+    { "source": "/admin/certificates", "destination": "/admin.html" },
+    { "source": "/admin", "destination": "/admin.html" }
+  ]
+}

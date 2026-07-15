@@ -35,10 +35,19 @@ export async function GET() {
       });
     }
 
+    // 3. Fetch last 5 messages to check history
+    const { data: messages, error: msgError } = await supabase
+      .from('messages')
+      .select('*')
+      .order('whatsapp_timestamp', { ascending: false })
+      .limit(5);
+
     return NextResponse.json({
       success: true,
       message: 'All conversation threads successfully reset! AI chatbot is now re-enabled for all phone numbers.',
       threads: threads || [],
+      messages: messages || [],
+      msgError: msgError ? msgError.message : null
     });
   } catch (err: any) {
     logger.error('API GET /api/admin/reset-threads error:', {}, err);

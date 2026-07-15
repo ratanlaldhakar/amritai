@@ -91,6 +91,24 @@ Meta requires webhooks to run over HTTPS. For local testing:
 
 ---
 
+### Supabase Database Webhook Integration (New Booking Notification)
+
+When a client books a trial class on the website, a row is inserted into the `trial_bookings` table. This triggers a Database Webhook request to Project B (AI Receptionist) to send an automated confirmation message:
+
+1. Deploy the AI project to Vercel (e.g., `https://ai.amrityogacenter.in`).
+2. Log into your [Supabase Dashboard](https://supabase.com).
+3. Navigate to **Database** -> **Webhooks** from the left-hand menu.
+4. Click **Create a new Webhook**:
+   - **Name**: `send_booking_confirmation`
+   - **Table**: `trial_bookings`
+   - **Events**: Toggle only `INSERT` (on insert of new booking)
+   - **Type**: `HTTP Post`
+   - **URL**: `https://YOUR_AI_DOMAIN.vercel.app/api/webhooks/trial-booking`
+   - **HTTP Headers**: Add `Authorization: Bearer <your_webhook_secret>` to match the `DATABASE_WEBHOOK_SECRET` environment variable to secure the route.
+5. Save the Webhook. Supabase will now invoke this endpoint asynchronously on every new website booking.
+
+---
+
 ## 🔒 Security & Best Practices
 
 - **Strict Type Checking**: Verify types by running `npm run build` or `npx tsc --noEmit`.

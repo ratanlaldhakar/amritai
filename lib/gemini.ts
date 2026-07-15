@@ -10,8 +10,8 @@ export const gemini = new GoogleGenAI({
 });
 
 export const GEMINI_MODELS = {
-  GEMINI_2_5_FLASH: 'gemini-2.5-flash',
-  GEMINI_2_5_PRO: 'gemini-2.5-pro',
+  GEMINI_2_5_FLASH: 'gemini-1.5-flash',
+  GEMINI_2_5_PRO: 'gemini-1.5-pro',
 } as const;
 
 export type GeminiModel = (typeof GEMINI_MODELS)[keyof typeof GEMINI_MODELS];

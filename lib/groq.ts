@@ -15,7 +15,7 @@ export const GROQ_MODELS = {
   MIXTRAL_8X7B: 'mixtral-8x7b-32768',
 } as const;
 
-export type GroqModel = (typeof GROQ_MODELS)[keyof typeof GROQ_MODELS];
+export type GroqModel = string;
 
 /**
  * Generate a text response using Groq completions

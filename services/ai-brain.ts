@@ -65,10 +65,12 @@ export class AIBrainService {
 
     // Ordered queue of fallback models to try
     const modelQueue: { provider: 'groq' | 'gemini'; model: string }[] = [
-      { provider: 'groq', model: GROQ_MODELS.LLAMA_3_3_70B },
+      { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+      { provider: 'groq', model: 'llama-3.1-8b-instant' },
+      { provider: 'groq', model: 'mixtral-8x7b-32768' },
+      { provider: 'groq', model: 'llama-3.1-70b-versatile' },
+      { provider: 'groq', model: 'gemma2-9b-it' },
       { provider: 'gemini', model: GEMINI_MODELS.GEMINI_2_5_FLASH },
-      { provider: 'groq', model: GROQ_MODELS.LLAMA_3_1_8B },
-      { provider: 'groq', model: GROQ_MODELS.MIXTRAL_8X7B },
     ];
 
     // If there is a primary model configured in settings, put it at the top of the queue

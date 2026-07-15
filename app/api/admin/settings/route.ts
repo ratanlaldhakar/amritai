@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/services/db';
 import { logger } from '@/lib/logger';
 
+import { RECEPTIONIST_SYSTEM_PROMPT } from '@/lib/constants';
+
 export async function GET() {
   try {
     const [
@@ -34,9 +36,7 @@ export async function GET() {
         quarterlyFee: quarterlyFee ?? 4000,
         morningStart: morningStart ?? '06:00',
         morningEnd: morningEnd ?? '07:30',
-        systemPrompt:
-          systemPrompt ??
-          'You are the friendly, polite, and professional AI Receptionist for "Amrit Yoga Center" Raipur...',
+        systemPrompt: systemPrompt ?? RECEPTIONIST_SYSTEM_PROMPT,
       },
     });
   } catch (error: any) {

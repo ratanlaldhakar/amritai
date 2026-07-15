@@ -23,11 +23,24 @@ export class AIBrainService {
     try {
       const canonical = normalizePhoneNumber(phoneNumber);
       const history = await db.messages.getHistory(canonical, limit);
-      return history.map((msg) => ({
-        text: msg.text || '',
-        direction: msg.direction as 'incoming' | 'outgoing',
-        customerName: 'Customer', // Simplified name fallback
-      }));
+      return history.map((msg) => {
+        let text = msg.text || '';
+        
+        // Clean LLM meta-instructions from outgoing messages to prevent loop confusion
+        if (msg.direction === 'outgoing') {
+          text = text
+            .replace(/\[WAITING FOR RESPONSE\]/gi, '')
+            .replace(/\(Please respond with[^)]*\)/gi, '')
+            .replace(/\[ACTION:[^\]]*\]/gi, '')
+            .trim();
+        }
+        
+        return {
+          text,
+          direction: msg.direction as 'incoming' | 'outgoing',
+          customerName: 'Customer',
+        };
+      });
     } catch (error) {
       logger.error('Database memory fetch exception:', { phoneNumber }, error);
       return [];
@@ -146,12 +159,18 @@ export class AIBrainService {
    * Validate and clean AI response to guarantee strict handoff policies
    */
   private validateResponse(aiResponse: string): string {
-    const cleaned = aiResponse.trim();
+    let cleaned = aiResponse.trim();
 
     if (!cleaned) {
       logger.warn('AI Response Validation triggered Fallback: Response is completely empty');
       return this.fallbackPhrase;
     }
+
+    // Strip LLM meta-instructions that should never reach the customer
+    cleaned = cleaned
+      .replace(/\[WAITING FOR RESPONSE\]/gi, '')
+      .replace(/\(Please respond with[^)]*\)/gi, '')
+      .trim();
 
     // Only fallback if the model explicitly requested or contains instructor contact sentence
     if (cleaned.toLowerCase().includes('instructor will contact')) {
@@ -264,6 +283,123 @@ export class AIBrainService {
       this.getKnowledge(),
       db.students.getByPhone(canonicalPhone),
     ]);
+
+    // ── PROGRAMMATIC SLOT EXTRACTION ──
+    // Scan conversation history + current message for trial booking slots.
+    // If all 3 slots (Name, Age, Batch) are detected, skip the LLM entirely and auto-book.
+    const allIncomingTexts = history
+      .filter((m) => m.direction === 'incoming')
+      .map((m) => m.text)
+      .concat([messageText]);
+    const combinedIncoming = allIncomingTexts.join(' | ');
+
+    // Check if conversation context implies trial booking intent
+    const allTexts = history.map((m) => m.text).concat([messageText]);
+    const combinedAll = allTexts.join(' ').toLowerCase();
+    const hasTrialIntent =
+      combinedAll.includes('trial') ||
+      combinedAll.includes('book') ||
+      combinedAll.includes('join') ||
+      combinedAll.includes('class') ||
+      combinedAll.includes('register') ||
+      combinedAll.includes('confirm');
+
+    if (hasTrialIntent) {
+      // Extract age: any standalone number between 3 and 120
+      let detectedAge: string | null = null;
+      for (const txt of allIncomingTexts) {
+        const ageMatch = txt.match(/\b(\d{1,3})\b/);
+        if (ageMatch) {
+          const num = parseInt(ageMatch[1]);
+          if (num >= 3 && num <= 120) detectedAge = String(num);
+        }
+      }
+
+      // Extract batch: morning or evening
+      let detectedBatch: string | null = null;
+      if (/\bmorning\b/i.test(combinedIncoming)) detectedBatch = 'Morning';
+      else if (/\bevening\b/i.test(combinedIncoming)) detectedBatch = 'Evening';
+      else if (/\bsubah\b/i.test(combinedIncoming)) detectedBatch = 'Morning';
+      else if (/\bsham\b/i.test(combinedIncoming)) detectedBatch = 'Evening';
+
+      // Extract name: use customerName from WhatsApp profile, or look for name patterns
+      let detectedName: string | null = null;
+      // Check if any incoming message looks like a name (2-30 alpha chars, no numbers)
+      for (const txt of allIncomingTexts) {
+        const trimmed = txt.trim();
+        // Pure name: only letters and spaces, 2-30 chars, not a known keyword
+        if (/^[a-zA-Z\s]{2,30}$/.test(trimmed)) {
+          const lower = trimmed.toLowerCase();
+          const skipWords = ['morning', 'evening', 'hi', 'hello', 'hy', 'hii', 'yes', 'no', 'ok', 'confirm', 'book', 'join', 'class', 'trial', 'haan', 'nahi'];
+          if (!skipWords.includes(lower)) {
+            detectedName = trimmed;
+          }
+        }
+      }
+      // Fallback: try to extract from comma-separated format like "Vasu,99,morning"
+      if (!detectedName) {
+        for (const txt of allIncomingTexts) {
+          const commaMatch = txt.match(/^([a-zA-Z]+)\s*[,]\s*(\d{1,3})\s*[,]/i);
+          if (commaMatch) {
+            detectedName = commaMatch[1].trim();
+            const ageNum = parseInt(commaMatch[2]);
+            if (ageNum >= 3 && ageNum <= 120) detectedAge = String(ageNum);
+          }
+        }
+      }
+      // Ultimate fallback: use WhatsApp profile name if it's not just emoji
+      if (!detectedName && customerName && /[a-zA-Z]/.test(customerName)) {
+        detectedName = customerName;
+      }
+
+      // If all 3 slots are filled, AUTO-BOOK without LLM!
+      if (detectedName && detectedAge && detectedBatch) {
+        logger.info('PROGRAMMATIC SLOT EXTRACTION: All 3 trial booking slots detected!', {
+          name: detectedName, age: detectedAge, batch: detectedBatch,
+        });
+
+        // Create trial booking
+        try {
+          await db.trial_bookings.create({
+            name: detectedName,
+            phone: canonicalPhone,
+            age: parseInt(detectedAge) || null,
+            gender: null, city: null,
+            batch: detectedBatch,
+            goal: null,
+            notes: `Trial class booked automatically by AI Receptionist (slot extraction). Preferred batch: ${detectedBatch}.`,
+            status: 'pending',
+            mode: 'Offline',
+            experience: null,
+            source: 'WhatsApp AI',
+          });
+          logger.info(`Auto-booked trial for ${detectedName} (${canonicalPhone})`);
+        } catch (dbErr) {
+          logger.error('Failed to auto-book trial:', {}, dbErr);
+        }
+
+        // Upsert CRM lead
+        try {
+          await db.leads.upsert({
+            phone_number: canonicalPhone,
+            name: detectedName,
+            status: 'trial_booked',
+            interest: 'Trial Booking',
+            preferred_batch: detectedBatch,
+            goal: null,
+            source: 'WhatsApp',
+            notes: `Age: ${detectedAge}. Batch: ${detectedBatch}. Auto-booked via slot extraction.`,
+            follow_up_date: null,
+          });
+        } catch (dbErr) {
+          logger.error('Failed to upsert CRM lead for auto-booking:', {}, dbErr);
+        }
+
+        const confirmMsg = `Hari Om! 🙏 ${detectedName} ji, aapki trial class successfully book ho gayi hai! ✅\n\n📋 Booking Details:\n• Name: ${detectedName}\n• Age: ${detectedAge}\n• Batch: ${detectedBatch} (6:00 AM - 7:00 AM)\n\n📍 Location: 3-M-7, 2nd Floor, Near Vinay Stationers, Government Hospital Road, Bapunagar, Bhilwara (Rajasthan)\n\nHum aapka intezaar karenge! Agar koi sawal ho toh yahan puchh sakte hain. 🙏`;
+        await this.saveOutgoingMessage(canonicalPhone, customerName, confirmMsg);
+        return confirmMsg;
+      }
+    }
 
     // Customize prompt context if this is an enrolled active student
     let enrolledStatusContext = '';

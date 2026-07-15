@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       });
       logger.info(`CRM Lead successfully upserted for phone: ${canonicalPhone}`);
     } catch (err) {
-      logger.error('Failed to upsert lead in database webhook handler:', err);
+      logger.error('Failed to upsert lead in database webhook handler:', {}, err);
     }
 
     // 4. Send WhatsApp Confirmation
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       logger.info(`Conversation message log stored in database for booking ID: ${bookingId}`);
 
     } catch (waErr: any) {
-      logger.error('Failed to send WhatsApp message or save chat logs:', waErr);
+      logger.error('Failed to send WhatsApp message or save chat logs:', {}, waErr);
       return NextResponse.json(
         { success: false, error: 'Failed to complete WhatsApp delivery actions', details: waErr.message },
         { status: 502 }
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    logger.error('Database Webhook critical exception:', error);
+    logger.error('Database Webhook critical exception:', {}, error);
     return NextResponse.json(
       { success: false, error: 'Internal server error', details: error.message },
       { status: 500 }

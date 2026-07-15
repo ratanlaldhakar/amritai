@@ -6,7 +6,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     const { id } = await params;
 
-    // We resolve the inquiry (assigned_to adminId, but since we are simple we pass a dummy or read from body)
     let adminId = 'd5300000-0000-0000-0000-000000000000'; // fallback dummy uuid if none exists
     try {
       const body = await request.json();
@@ -17,10 +16,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       // Body might be empty, ignore
     }
 
-    const success = await db.inquiries.resolve(id, adminId);
+    const success = await db.leads.resolve(id, adminId);
     if (!success) {
       return NextResponse.json(
-        { success: false, error: 'Inquiry not found or resolution failed' },
+        { success: false, error: 'Lead not found or resolution failed' },
         { status: 404 }
       );
     }

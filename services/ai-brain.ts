@@ -1,9 +1,10 @@
 import { generateGeminiText, GEMINI_MODELS } from '@/lib/gemini';
 import { generateGroqText, GROQ_MODELS } from '@/lib/groq';
 import { logger } from '@/lib/logger';
-import { db } from '@/services/db';
+import { db, normalizePhoneNumber } from '@/services/db';
 import { memoryCache } from '@/utils/cache';
 import { withRetry } from '@/utils/retry';
+import { getSupabaseServiceRole } from '@/lib/supabase';
 import {
   SYSTEM_INSTRUCTION,
   ChatMessageMemory,
@@ -20,11 +21,12 @@ export class AIBrainService {
    */
   async getMemory(phoneNumber: string, limit = 8): Promise<ChatMessageMemory[]> {
     try {
-      const history = await db.messages.getHistory(phoneNumber, limit);
+      const canonical = normalizePhoneNumber(phoneNumber);
+      const history = await db.messages.getHistory(canonical, limit);
       return history.map((msg) => ({
         text: msg.text || '',
         direction: msg.direction as 'incoming' | 'outgoing',
-        customerName: msg.customer_name || 'Customer',
+        customerName: 'Customer', // Simplified name fallback
       }));
     } catch (error) {
       logger.error('Database memory fetch exception:', { phoneNumber }, error);
@@ -43,10 +45,10 @@ export class AIBrainService {
         return cached;
       }
 
-      const faqs = await db.faqs.getAll();
-      const mapped = faqs.map((faq) => ({
-        title: faq.question,
-        content: faq.answer,
+      const kbItems = await db.knowledge_base.getAll();
+      const mapped = kbItems.map((item) => ({
+        title: item.question,
+        content: item.answer,
       }));
 
       // Cache for 5 minutes (300,000 ms)
@@ -212,12 +214,13 @@ export class AIBrainService {
     responseText: string
   ): Promise<void> {
     try {
+      const canonical = normalizePhoneNumber(phoneNumber);
       const timestamp = new Date();
       const mockWamid = `wamid.outgoing.${timestamp.getTime()}`;
 
       await db.messages.save({
         message_id: mockWamid,
-        phone_number: phoneNumber,
+        phone_number: canonical,
         customer_name: customerName,
         text: responseText,
         direction: 'outgoing',
@@ -236,7 +239,24 @@ export class AIBrainService {
     messageText: string,
     customerName: string
   ): Promise<string> {
-    logger.info(`AI Brain processing request for: ${phoneNumber} (${customerName})`);
+    const canonicalPhone = normalizePhoneNumber(phoneNumber);
+    logger.info(`AI Brain processing request for: ${canonicalPhone} (${customerName})`);
+
+    // 0. Precheck: Verify if AI is disabled for this conversation thread
+    try {
+      const supabase = getSupabaseServiceRole();
+      const { data: thread } = await supabase
+        .from('conversation_threads')
+        .select('ai_enabled')
+        .eq('phone_number', canonicalPhone)
+        .maybeSingle();
+      if (thread && !thread.ai_enabled) {
+        logger.info(`AI is disabled for thread ${canonicalPhone}, skipping bot response.`);
+        return this.fallbackPhrase;
+      }
+    } catch (err) {
+      logger.error('Failed to check thread ai_enabled status:', {}, err);
+    }
 
     // Precheck: Stop AI and create human ticket immediately if handover keywords matched
     const lowerMessage = messageText.toLowerCase();
@@ -248,37 +268,55 @@ export class AIBrainService {
         messageText,
       });
       try {
-        await db.inquiries.create({
-          phone_number: phoneNumber,
-          customer_name: customerName,
-          message: `${messageText} (Immediate keyword handoff trigger)`,
-          assigned_to: null,
+        await db.leads.upsert({
+          phone_number: canonicalPhone,
+          name: customerName,
+          status: 'new',
+          notes: `${messageText} (Immediate keyword handoff trigger)`,
+          source: 'WhatsApp'
         });
-        await db.students.updateStatus(phoneNumber, 'lead');
-        logger.info(`Successfully logged handoff inquiry in database for ${phoneNumber}`);
+        
+        const supabase = getSupabaseServiceRole();
+        await supabase
+          .from('conversation_threads')
+          .update({
+            status: 'human_required',
+            handover_reason: 'Keyword trigger',
+            ai_enabled: false
+          })
+          .eq('phone_number', canonicalPhone);
+
+        logger.info(`Successfully logged handoff inquiry in database for ${canonicalPhone}`);
       } catch (dbErr) {
         logger.error('Failed to log handoff inquiry in database:', {}, dbErr);
       }
 
       const finalResponse = this.fallbackPhrase;
-      await this.saveOutgoingMessage(phoneNumber, customerName, finalResponse);
+      await this.saveOutgoingMessage(canonicalPhone, customerName, finalResponse);
       return finalResponse;
     }
 
-    // 1. Fetch memory and knowledge base in parallel
-    const [history, kbItems] = await Promise.all([
-      this.getMemory(phoneNumber),
+    // 1. Fetch memory, knowledge base, and student status in parallel
+    const [history, kbItems, studentProfile] = await Promise.all([
+      this.getMemory(canonicalPhone),
       this.getKnowledge(),
+      db.students.getByPhone(canonicalPhone),
     ]);
+
+    // Customize prompt context if this is an enrolled active student
+    let enrolledStatusContext = '';
+    if (studentProfile && studentProfile.status === 'active') {
+      enrolledStatusContext = `[Student Status: ENROLLED. Address them as an active practitioner of Amrit Yoga Center.]\n`;
+    }
 
     // 2. Format inputs
     const historyStr = formatConversationHistory(history);
     const knowledgeBaseStr = formatKnowledgeBase(kbItems);
 
     // 3. Compile prompt
-    const prompt = compileUserPrompt(knowledgeBaseStr, historyStr, messageText, customerName);
+    const prompt = enrolledStatusContext + compileUserPrompt(knowledgeBaseStr, historyStr, messageText, customerName);
     logger.info('AI PROMPT COMPILED:', {
-      phoneNumber,
+      canonicalPhone,
       customerName,
       promptText: prompt,
     });
@@ -288,7 +326,7 @@ export class AIBrainService {
     try {
       rawResponse = await this.queryLLM(prompt);
       logger.info('AI RAW RESPONSE RECEIVED:', {
-        phoneNumber,
+        canonicalPhone,
         rawResponse,
       });
     } catch (error: any) {
@@ -320,33 +358,42 @@ export class AIBrainService {
 
       logger.info('Action parsed from LLM: BOOK_TRIAL', { name, age, batch });
 
-      let resolvedBatchId: string | null = null;
+      // Create trial booking in the Website's trial_bookings table
       try {
-        let batches = memoryCache.get<any[]>('studio_batches');
-        if (!batches) {
-          batches = await db.batches.getAll();
-          memoryCache.set('studio_batches', batches, 300000);
-        }
-        const matched = batches.find((b) => b.name.toLowerCase().includes(batch.toLowerCase()));
-        if (matched) {
-          resolvedBatchId = matched.id;
-        }
-      } catch (err) {
-        logger.error('Error resolving batch ID for booking:', {}, err);
+        await db.trial_bookings.create({
+          name: name,
+          phone: canonicalPhone,
+          age: parseInt(age) || null,
+          gender: null,
+          city: null,
+          batch: batch,
+          goal: null,
+          notes: `Trial class booked automatically by AI Receptionist. Preferred batch: ${batch}.`,
+          status: 'pending',
+          mode: 'Offline',
+          experience: null,
+          source: 'WhatsApp AI'
+        });
+        logger.info(`Successfully stored trial booking in shared database for ${canonicalPhone}`);
+      } catch (dbErr) {
+        logger.error('Failed to save trial booking in shared database:', {}, dbErr);
       }
 
+      // Upsert CRM lead with status 'trial_booked'
       try {
-        await db.students.upsert({
-          phone_number: phoneNumber,
+        await db.leads.upsert({
+          phone_number: canonicalPhone,
           name: name,
           status: 'trial_booked',
-          trial_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Set tomorrow
-          batch_id: resolvedBatchId,
-          notes: `Age: ${age}. Preferred batch: ${batch}. (Trial class booked automatically by AI Receptionist)`,
+          interest: 'Trial Booking',
+          preferred_batch: batch,
+          goal: null,
+          source: 'WhatsApp',
+          notes: `Age: ${age}. Preferred batch: ${batch}. Trial booked automatically.`,
+          follow_up_date: null
         });
-        logger.info(`Successfully stored trial booking in database for ${phoneNumber}`);
       } catch (dbErr) {
-        logger.error('Failed to save trial booking in database:', {}, dbErr);
+        logger.error('Failed to upsert CRM lead for trial booking:', {}, dbErr);
       }
 
       // Strip tag
@@ -358,37 +405,47 @@ export class AIBrainService {
       logger.info('Action parsed from LLM: HUMAN_HANDOVER', { reason });
 
       try {
-        await db.inquiries.create({
-          phone_number: phoneNumber,
-          customer_name: customerName,
-          message: `${messageText} (Handoff trigger reason: ${reason})`,
-          assigned_to: null,
+        await db.leads.upsert({
+          phone_number: canonicalPhone,
+          name: customerName,
+          status: 'new',
+          notes: `${messageText} (Handoff trigger reason: ${reason})`,
+          source: 'WhatsApp'
         });
-        await db.students.updateStatus(phoneNumber, 'lead');
-        logger.info(`Successfully logged handoff inquiry in database for ${phoneNumber}`);
+
+        const supabase = getSupabaseServiceRole();
+        await supabase
+          .from('conversation_threads')
+          .update({
+            status: 'human_required',
+            handover_reason: reason,
+            ai_enabled: false
+          })
+          .eq('phone_number', canonicalPhone);
+
+        logger.info(`Successfully logged handoff CRM lead in database for ${canonicalPhone}`);
       } catch (dbErr) {
-        logger.error('Failed to log handoff inquiry in database:', {}, dbErr);
+        logger.error('Failed to log handoff lead in database:', {}, dbErr);
       }
 
       finalResponse = this.fallbackPhrase;
     } else {
-      // Normal flow: Upsert student as general lead
+      // Normal flow: Upsert general CRM lead
       try {
-        await db.students.upsert({
-          phone_number: phoneNumber,
+        await db.leads.upsert({
+          phone_number: canonicalPhone,
           name: customerName,
-          status: 'lead',
-          trial_date: null,
-          batch_id: null,
+          status: 'new',
           notes: `Last user query: "${messageText.slice(0, 60)}..."`,
+          source: 'WhatsApp'
         });
       } catch (dbErr) {
-        logger.error('Failed to upsert student lead profile:', {}, dbErr);
+        logger.error('Failed to upsert CRM lead:', {}, dbErr);
       }
     }
 
     // 6. Save outgoing message to database
-    await this.saveOutgoingMessage(phoneNumber, customerName, finalResponse);
+    await this.saveOutgoingMessage(canonicalPhone, customerName, finalResponse);
 
     logger.info('AI Brain generated response:', { finalResponse });
     return finalResponse;

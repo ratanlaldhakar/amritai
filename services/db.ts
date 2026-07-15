@@ -4,26 +4,54 @@ import { memoryCache } from '@/utils/cache';
 import {
   Student,
   StudentInsert,
-  Batch,
-  FAQ,
+  TrialBooking,
+  TrialBookingInsert,
+  Lead,
+  LeadInsert,
+  ConversationThread,
   Message,
   MessageInsert,
-  Inquiry,
-  InquiryInsert,
+  KnowledgeBase,
+  KnowledgeBaseInsert,
+  Setting,
 } from '@/types/database';
+
+// Global Phone Number Normalizer to E.164 Format
+export function normalizePhoneNumber(phone: string): string {
+  // Remove all characters except digits and a leading '+'
+  let cleaned = phone.replace(/[^\d+]/g, '');
+
+  if (cleaned.startsWith('+')) {
+    return cleaned;
+  }
+
+  // Handle standard Indian numbers starting with '0'
+  if (cleaned.startsWith('0') && cleaned.length === 11) {
+    return '+91' + cleaned.substring(1);
+  }
+
+  // Handle standard 10 digit Indian numbers
+  if (cleaned.length === 10) {
+    return '+91' + cleaned;
+  }
+
+  // Prepend '+' for generic international numbers
+  return '+' + cleaned;
+}
 
 export const db = {
   students: {
     async getByPhone(phoneNumber: string): Promise<Student | null> {
       const supabase = getSupabaseServiceRole();
+      const canonical = normalizePhoneNumber(phoneNumber);
       const { data, error } = await supabase
         .from('students')
         .select('*')
-        .eq('phone_number', phoneNumber)
+        .eq('phone_number', canonical)
         .maybeSingle();
 
       if (error) {
-        logger.error('db.students.getByPhone error:', { phoneNumber }, error);
+        logger.error('db.students.getByPhone error:', { phoneNumber, canonical }, error);
         return null;
       }
       return data;
@@ -33,9 +61,10 @@ export const db = {
       student: Omit<StudentInsert, 'status'> & { status?: Student['status'] }
     ): Promise<Student | null> {
       const supabase = getSupabaseServiceRole();
+      const canonicalPhone = normalizePhoneNumber(student.phone_number);
       const { data, error } = await supabase
         .from('students')
-        .upsert({ ...student }, { onConflict: 'phone_number' })
+        .upsert({ ...student, phone_number: canonicalPhone }, { onConflict: 'phone_number' })
         .select('*')
         .single();
 
@@ -48,30 +77,14 @@ export const db = {
 
     async updateStatus(phoneNumber: string, status: Student['status']): Promise<boolean> {
       const supabase = getSupabaseServiceRole();
+      const canonical = normalizePhoneNumber(phoneNumber);
       const { error } = await supabase
         .from('students')
         .update({ status })
-        .eq('phone_number', phoneNumber);
+        .eq('phone_number', canonical);
 
       if (error) {
         logger.error('db.students.updateStatus error:', { phoneNumber, status }, error);
-        return false;
-      }
-      return true;
-    },
-
-    async bookTrial(phoneNumber: string, trialDate: string): Promise<boolean> {
-      const supabase = getSupabaseServiceRole();
-      const { error } = await supabase
-        .from('students')
-        .update({
-          status: 'trial_booked',
-          trial_date: trialDate,
-        })
-        .eq('phone_number', phoneNumber);
-
-      if (error) {
-        logger.error('db.students.bookTrial error:', { phoneNumber, trialDate }, error);
         return false;
       }
       return true;
@@ -111,130 +124,239 @@ export const db = {
     },
   },
 
-  batches: {
-    async getAll(): Promise<Batch[]> {
+  trial_bookings: {
+    async create(booking: TrialBookingInsert): Promise<TrialBooking | null> {
       const supabase = getSupabaseServiceRole();
+      const canonicalPhone = normalizePhoneNumber(booking.phone);
       const { data, error } = await supabase
-        .from('batches')
-        .select('*')
-        .order('start_time', { ascending: true });
-
-      if (error) {
-        logger.error('db.batches.getAll error:', {}, error);
-        return [];
-      }
-      return data || [];
-    },
-
-    async getById(id: string): Promise<Batch | null> {
-      const supabase = getSupabaseServiceRole();
-      const { data, error } = await supabase.from('batches').select('*').eq('id', id).maybeSingle();
-
-      if (error) {
-        logger.error('db.batches.getById error:', { id }, error);
-        return null;
-      }
-      return data;
-    },
-  },
-
-  faqs: {
-    async getAll(): Promise<FAQ[]> {
-      const supabase = getSupabaseServiceRole();
-      const { data, error } = await supabase
-        .from('faqs')
-        .select('*')
-        .eq('is_published', true)
-        .order('priority', { ascending: false })
-        .order('category', { ascending: true });
-
-      if (error) {
-        logger.error('db.faqs.getAll error:', {}, error);
-        return [];
-      }
-      return data || [];
-    },
-
-    async getByCategory(category: string): Promise<FAQ[]> {
-      const supabase = getSupabaseServiceRole();
-      const { data, error } = await supabase
-        .from('faqs')
-        .select('*')
-        .eq('category', category)
-        .eq('is_published', true)
-        .order('priority', { ascending: false });
-
-      if (error) {
-        logger.error('db.faqs.getByCategory error:', { category }, error);
-        return [];
-      }
-      return data || [];
-    },
-
-    async getAllWithUnpublished(): Promise<FAQ[]> {
-      const supabase = getSupabaseServiceRole();
-      const { data, error } = await supabase
-        .from('faqs')
-        .select('*')
-        .order('priority', { ascending: false })
-        .order('category', { ascending: true });
-
-      if (error) {
-        logger.error('db.faqs.getAllWithUnpublished error:', {}, error);
-        return [];
-      }
-      return data || [];
-    },
-
-    async create(faq: Omit<FAQ, 'id' | 'created_at' | 'updated_at'>): Promise<FAQ | null> {
-      const supabase = getSupabaseServiceRole();
-      const { data, error } = await supabase.from('faqs').insert(faq).select('*').single();
-
-      if (error) {
-        logger.error('db.faqs.create error:', { faq }, error);
-        return null;
-      }
-      memoryCache.delete('knowledge_faqs');
-      return data;
-    },
-
-    async update(
-      id: string,
-      updates: Partial<Omit<FAQ, 'id' | 'created_at' | 'updated_at'>>
-    ): Promise<FAQ | null> {
-      const supabase = getSupabaseServiceRole();
-      const { data, error } = await supabase
-        .from('faqs')
-        .update(updates)
-        .eq('id', id)
+        .from('trial_bookings')
+        .insert({ ...booking, phone: canonicalPhone })
         .select('*')
         .single();
 
       if (error) {
-        logger.error('db.faqs.update error:', { id, updates }, error);
+        logger.error('db.trial_bookings.create error:', { booking }, error);
         return null;
       }
-      memoryCache.delete('knowledge_faqs');
       return data;
     },
 
-    async delete(id: string): Promise<boolean> {
+    async getAll(): Promise<TrialBooking[]> {
       const supabase = getSupabaseServiceRole();
-      const { error } = await supabase.from('faqs').delete().eq('id', id);
+      const { data, error } = await supabase
+        .from('trial_bookings')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (error) {
-        logger.error('db.faqs.delete error:', { id }, error);
+        logger.error('db.trial_bookings.getAll error:', {}, error);
+        return [];
+      }
+      return data || [];
+    },
+  },
+
+  leads: {
+    async getByPhone(phoneNumber: string): Promise<Lead | null> {
+      const supabase = getSupabaseServiceRole();
+      const canonical = normalizePhoneNumber(phoneNumber);
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('phone_number', canonical)
+        .maybeSingle();
+
+      if (error) {
+        logger.error('db.leads.getByPhone error:', { phoneNumber, canonical }, error);
+        return null;
+      }
+      return data;
+    },
+
+    async upsert(
+      lead: Omit<LeadInsert, 'status'> & { status?: Lead['status'] }
+    ): Promise<Lead | null> {
+      const supabase = getSupabaseServiceRole();
+      const canonicalPhone = normalizePhoneNumber(lead.phone_number);
+      const { data, error } = await supabase
+        .from('leads')
+        .upsert({ ...lead, phone_number: canonicalPhone }, { onConflict: 'phone_number' })
+        .select('*')
+        .single();
+
+      if (error) {
+        logger.error('db.leads.upsert error:', { lead }, error);
+        return null;
+      }
+      return data;
+    },
+
+    async updateStatus(phoneNumber: string, status: Lead['status']): Promise<boolean> {
+      const supabase = getSupabaseServiceRole();
+      const canonical = normalizePhoneNumber(phoneNumber);
+      const { error } = await supabase
+        .from('leads')
+        .update({ status, last_contact_at: new Date().toISOString() })
+        .eq('phone_number', canonical);
+
+      if (error) {
+        logger.error('db.leads.updateStatus error:', { phoneNumber, status }, error);
         return false;
       }
-      memoryCache.delete('knowledge_faqs');
       return true;
+    },
+
+    async create(lead: LeadInsert): Promise<Lead | null> {
+      const supabase = getSupabaseServiceRole();
+      const canonicalPhone = normalizePhoneNumber(lead.phone_number);
+      const { data, error } = await supabase
+        .from('leads')
+        .insert({ ...lead, phone_number: canonicalPhone })
+        .select('*')
+        .single();
+
+      if (error) {
+        logger.error('db.leads.create error:', { lead }, error);
+        return null;
+      }
+      return data;
+    },
+
+    async getPending(): Promise<Lead[]> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('status', 'new')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        logger.error('db.leads.getPending error:', {}, error);
+        return [];
+      }
+      return data || [];
+    },
+
+    async resolve(id: string, adminId: string): Promise<boolean> {
+      const supabase = getSupabaseServiceRole();
+      const { error } = await supabase
+        .from('leads')
+        .update({
+          status: 'contacted',
+          assigned_to: adminId,
+          last_contact_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) {
+        logger.error('db.leads.resolve error:', { id, adminId }, error);
+        return false;
+      }
+      return true;
+    },
+
+    async getAll(): Promise<Lead[]> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        logger.error('db.leads.getAll error:', {}, error);
+        return [];
+      }
+      return data || [];
     },
   },
 
   messages: {
-    async save(message: MessageInsert): Promise<Message | null> {
+    async save(message: Omit<MessageInsert, 'thread_id'> & { thread_id?: string; customer_name?: string }): Promise<Message | null> {
       const supabase = getSupabaseServiceRole();
-      const { data, error } = await supabase.from('messages').insert(message).select('*').single();
+      const canonicalPhone = normalizePhoneNumber(message.phone_number);
+
+      let threadId = message.thread_id;
+
+      // Ensure thread exists
+      if (!threadId) {
+        const { data: thread, error: threadError } = await supabase
+          .from('conversation_threads')
+          .select('id, unread_count')
+          .eq('phone_number', canonicalPhone)
+          .maybeSingle();
+
+        if (threadError) {
+          logger.error('db.messages.save thread query error:', { canonicalPhone }, threadError);
+        }
+
+        if (thread) {
+          threadId = thread.id;
+          
+          // Update last message metadata on the thread
+          const threadUpdates: any = {
+            last_message: message.text,
+            last_message_at: message.whatsapp_timestamp || new Date().toISOString(),
+          };
+          if (message.direction === 'outgoing') {
+            threadUpdates.last_ai_response = message.text;
+          } else {
+            threadUpdates.unread_count = (thread.unread_count || 0) + 1;
+          }
+          
+          await supabase
+            .from('conversation_threads')
+            .update(threadUpdates)
+            .eq('id', threadId);
+        } else {
+          // Create new thread session
+          const { data: newThread, error: createThreadError } = await supabase
+            .from('conversation_threads')
+            .insert({
+              phone_number: canonicalPhone,
+              customer_name: message.customer_name || 'Customer',
+              last_message: message.text,
+              last_message_at: message.whatsapp_timestamp || new Date().toISOString(),
+              unread_count: message.direction === 'incoming' ? 1 : 0,
+              last_ai_response: message.direction === 'outgoing' ? message.text : null,
+              status: 'bot_handling',
+            })
+            .select('*')
+            .single();
+
+          if (createThreadError) {
+            logger.error('db.messages.save thread create error:', {}, createThreadError);
+          } else {
+            threadId = newThread.id;
+          }
+        }
+      } else {
+        // Simple update
+        const threadUpdates: any = {
+          last_message: message.text,
+          last_message_at: message.whatsapp_timestamp || new Date().toISOString(),
+        };
+        if (message.direction === 'outgoing') {
+          threadUpdates.last_ai_response = message.text;
+        }
+        await supabase
+          .from('conversation_threads')
+          .update(threadUpdates)
+          .eq('id', threadId);
+      }
+
+      // Save message details
+      const { data, error } = await supabase
+        .from('messages')
+        .insert({
+          thread_id: threadId,
+          message_id: message.message_id,
+          phone_number: canonicalPhone,
+          direction: message.direction,
+          text: message.text,
+          whatsapp_timestamp: message.whatsapp_timestamp,
+        })
+        .select('*')
+        .single();
 
       if (error) {
         logger.error('db.messages.save error:', { message }, error);
@@ -245,113 +367,128 @@ export const db = {
 
     async getHistory(phoneNumber: string, limit = 8): Promise<Message[]> {
       const supabase = getSupabaseServiceRole();
+      const canonical = normalizePhoneNumber(phoneNumber);
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .eq('phone_number', phoneNumber)
+        .eq('phone_number', canonical)
         .order('whatsapp_timestamp', { ascending: false })
         .limit(limit);
 
       if (error) {
-        logger.error('db.messages.getHistory error:', { phoneNumber, limit }, error);
+        logger.error('db.messages.getHistory error:', { phoneNumber, canonical, limit }, error);
         return [];
       }
-      return (data || []).reverse(); // Order chronologically ascending
+      return (data || []).reverse(); // Order chronologically ascending for the AI
     },
 
-    async getConversations(): Promise<any[]> {
+    async getConversations(): Promise<ConversationThread[]> {
       const supabase = getSupabaseServiceRole();
       const { data, error } = await supabase
-        .from('messages')
+        .from('conversation_threads')
         .select('*')
-        .order('whatsapp_timestamp', { ascending: false });
+        .order('last_message_at', { ascending: false });
 
       if (error) {
         logger.error('db.messages.getConversations error:', {}, error);
         return [];
       }
-
-      const chatsMap = new Map<string, any>();
-      for (const msg of data || []) {
-        const phone = msg.phone_number;
-        if (!chatsMap.has(phone)) {
-          chatsMap.set(phone, {
-            phone_number: phone,
-            customer_name: msg.customer_name || 'Unknown WhatsApp User',
-            last_message: msg.text,
-            last_timestamp: msg.whatsapp_timestamp,
-            unread: false,
-          });
-        }
-      }
-
-      return Array.from(chatsMap.values());
+      return data || [];
     },
   },
 
-  inquiries: {
-    async create(inquiry: Omit<InquiryInsert, 'status'>): Promise<Inquiry | null> {
+  knowledge_base: {
+    async getAll(): Promise<KnowledgeBase[]> {
       const supabase = getSupabaseServiceRole();
       const { data, error } = await supabase
-        .from('inquiries')
-        .insert({
-          ...inquiry,
-          status: 'pending',
-        })
+        .from('knowledge_base')
+        .select('*')
+        .eq('is_published', true)
+        .order('priority', { ascending: false })
+        .order('category', { ascending: true });
+
+      if (error) {
+        logger.error('db.knowledge_base.getAll error:', {}, error);
+        return [];
+      }
+      return data || [];
+    },
+
+    async getByCategory(category: string): Promise<KnowledgeBase[]> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('knowledge_base')
+        .select('*')
+        .eq('category', category)
+        .eq('is_published', true)
+        .order('priority', { ascending: false });
+
+      if (error) {
+        logger.error('db.knowledge_base.getByCategory error:', { category }, error);
+        return [];
+      }
+      return data || [];
+    },
+
+    async getAllWithUnpublished(): Promise<KnowledgeBase[]> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('knowledge_base')
+        .select('*')
+        .order('priority', { ascending: false })
+        .order('category', { ascending: true });
+
+      if (error) {
+        logger.error('db.knowledge_base.getAllWithUnpublished error:', {}, error);
+        return [];
+      }
+      return data || [];
+    },
+
+    async create(
+      kb: Omit<KnowledgeBase, 'id' | 'created_at' | 'updated_at'>
+    ): Promise<KnowledgeBase | null> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase.from('knowledge_base').insert(kb).select('*').single();
+
+      if (error) {
+        logger.error('db.knowledge_base.create error:', { kb }, error);
+        return null;
+      }
+      memoryCache.delete('knowledge_faqs');
+      return data;
+    },
+
+    async update(
+      id: string,
+      updates: Partial<Omit<KnowledgeBase, 'id' | 'created_at' | 'updated_at'>>
+    ): Promise<KnowledgeBase | null> {
+      const supabase = getSupabaseServiceRole();
+      const { data, error } = await supabase
+        .from('knowledge_base')
+        .update(updates)
+        .eq('id', id)
         .select('*')
         .single();
 
       if (error) {
-        logger.error('db.inquiries.create error:', { inquiry }, error);
+        logger.error('db.knowledge_base.update error:', { id, updates }, error);
         return null;
       }
+      memoryCache.delete('knowledge_faqs');
       return data;
     },
 
-    async getPending(): Promise<Inquiry[]> {
+    async delete(id: string): Promise<boolean> {
       const supabase = getSupabaseServiceRole();
-      const { data, error } = await supabase
-        .from('inquiries')
-        .select('*')
-        .eq('status', 'pending')
-        .order('created_at', { ascending: true });
+      const { error } = await supabase.from('knowledge_base').delete().eq('id', id);
 
       if (error) {
-        logger.error('db.inquiries.getPending error:', {}, error);
-        return [];
-      }
-      return data || [];
-    },
-
-    async resolve(id: string, adminId: string): Promise<boolean> {
-      const supabase = getSupabaseServiceRole();
-      const { error } = await supabase
-        .from('inquiries')
-        .update({
-          status: 'resolved',
-          assigned_to: adminId,
-        })
-        .eq('id', id);
-
-      if (error) {
-        logger.error('db.inquiries.resolve error:', { id, adminId }, error);
+        logger.error('db.knowledge_base.delete error:', { id }, error);
         return false;
       }
+      memoryCache.delete('knowledge_faqs');
       return true;
-    },
-
-    async getAll(): Promise<Inquiry[]> {
-      const supabase = getSupabaseServiceRole();
-      const { data, error } = await supabase
-        .from('inquiries')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        logger.error('db.inquiries.getAll error:', {}, error);
-        return [];
-      }
-      return data || [];
     },
   },
 

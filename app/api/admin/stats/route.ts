@@ -12,35 +12,46 @@ export async function GET() {
       { count: totalStudents },
       { count: pendingLeads },
       { count: messagesToday },
-      { data: funnelData },
+      { count: activeStudents },
+      { count: totalLeads },
+      { count: trialsScheduled },
     ] = await Promise.all([
       supabase.from('students').select('*', { count: 'exact', head: true }),
       supabase
-        .from('inquiries')
+        .from('leads')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending'),
+        .eq('status', 'new'),
       supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', today.toISOString()),
-      supabase.from('students').select('status'),
+      supabase
+        .from('students')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active'),
+      supabase.from('leads').select('*', { count: 'exact', head: true }),
+      supabase.from('trial_bookings').select('*', { count: 'exact', head: true }),
     ]);
 
-    // Compute status counts for funnel
-    const activeCount = funnelData?.filter((s) => s.status === 'active').length || 0;
-    const trialCount = funnelData?.filter((s) => s.status === 'trial_booked').length || 0;
-    const leadCount = funnelData?.filter((s) => s.status === 'lead').length || 0;
-    const inactiveCount = funnelData?.filter((s) => s.status === 'inactive').length || 0;
+    const leadsCount = totalLeads || 0;
+    const activeCount = activeStudents || 0;
+    const conversionRate = leadsCount > 0 ? ((activeCount / leadsCount) * 100).toFixed(1) : '0';
 
-    const totalCount = funnelData?.length || 0;
-    const conversionRate = totalCount > 0 ? ((activeCount / totalCount) * 100).toFixed(1) : '0';
-
-    // Fetch recent handoff inquiries
-    const { data: recentInquiries } = await supabase
-      .from('inquiries')
+    // Fetch recent handoff leads and map to inquiries frontend structure
+    const { data: recentLeads } = await supabase
+      .from('leads')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(5);
+
+    const recentInquiries = (recentLeads || []).map((lead) => ({
+      id: lead.id,
+      phone_number: lead.phone_number,
+      customer_name: lead.name || 'Unknown User',
+      message: lead.notes || `CRM Contact Profile`,
+      status: lead.status === 'new' ? 'pending' : 'resolved',
+      created_at: lead.created_at,
+    }));
 
     return NextResponse.json({
       success: true,
@@ -51,8 +62,8 @@ export async function GET() {
         conversionRate: `${conversionRate}%`,
       },
       funnel: {
-        totalLeads: leadCount + trialCount + activeCount + inactiveCount,
-        trialsScheduled: trialCount,
+        totalLeads: leadsCount,
+        trialsScheduled: trialsScheduled || 0,
         activeMembers: activeCount,
       },
       recentInquiries: recentInquiries || [],

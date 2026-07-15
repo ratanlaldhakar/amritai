@@ -12,6 +12,10 @@ interface FAQ {
   answer: string;
   is_published: boolean;
   priority: number;
+  language: string;
+  keywords: string[] | null;
+  tags: string[] | null;
+  embedding_status: string;
   created_at: string;
   updated_at: string;
 }
@@ -271,7 +275,7 @@ export default function FAQManager() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
-  const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
+  const [editingFaq, setEditingFaq] = useState<(Omit<FAQ, 'keywords' | 'tags'> & { keywords: string; tags: string }) | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [newFaq, setNewFaq] = useState({
     category: 'general',
@@ -279,6 +283,9 @@ export default function FAQManager() {
     answer: '',
     is_published: true,
     priority: 0,
+    language: 'hinglish',
+    keywords: '',
+    tags: '',
   });
 
   const fetchFaqs = async () => {
@@ -307,15 +314,30 @@ export default function FAQManager() {
     }
 
     try {
+      const payload = {
+        ...newFaq,
+        keywords: newFaq.keywords ? newFaq.keywords.split(',').map((k) => k.trim()).filter(Boolean) : null,
+        tags: newFaq.tags ? newFaq.tags.split(',').map((t) => t.trim()).filter(Boolean) : null,
+      };
+
       const res = await fetch('/api/admin/faqs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newFaq),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.success) {
         toast('Knowledge Base FAQ created!', 'success');
-        setNewFaq({ category: 'general', question: '', answer: '', is_published: true, priority: 0 });
+        setNewFaq({
+          category: 'general',
+          question: '',
+          answer: '',
+          is_published: true,
+          priority: 0,
+          language: 'hinglish',
+          keywords: '',
+          tags: '',
+        });
         setIsAdding(false);
         fetchFaqs();
       } else {
@@ -331,10 +353,16 @@ export default function FAQManager() {
     if (!editingFaq || !editingFaq.question.trim() || !editingFaq.answer.trim()) return;
 
     try {
+      const payload = {
+        ...editingFaq,
+        keywords: editingFaq.keywords ? editingFaq.keywords.split(',').map((k) => k.trim()).filter(Boolean) : null,
+        tags: editingFaq.tags ? editingFaq.tags.split(',').map((t) => t.trim()).filter(Boolean) : null,
+      };
+
       const res = await fetch(`/api/admin/faqs/${editingFaq.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingFaq),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.success) {
@@ -396,7 +424,9 @@ export default function FAQManager() {
     const matchesSearch =
       faq.question.toLowerCase().includes(search.toLowerCase()) ||
       faq.answer.toLowerCase().includes(search.toLowerCase()) ||
-      faq.category.toLowerCase().includes(search.toLowerCase());
+      faq.category.toLowerCase().includes(search.toLowerCase()) ||
+      (faq.keywords && faq.keywords.some((k) => k.toLowerCase().includes(search.toLowerCase()))) ||
+      (faq.tags && faq.tags.some((t) => t.toLowerCase().includes(search.toLowerCase())));
     const matchesCategory = filterCategory === 'all' || faq.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
@@ -427,7 +457,7 @@ export default function FAQManager() {
             AI Knowledge Base
           </h1>
           <p className="text-sm text-muted mt-1 font-medium">
-            Manage verified information and batch schedules used by the AI receptionist.
+            Manage verified information, keywords, languages, and priorities used by the AI receptionist.
           </p>
         </div>
         <button
@@ -508,9 +538,12 @@ export default function FAQManager() {
             >
               {/* Card Header */}
               <div className="flex justify-between items-center border-b border-border/80 pb-3">
-                <div className="flex items-center gap-2.5 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="px-2.5 py-0.5 rounded-lg text-[9px] font-black tracking-wider bg-primary/10 text-primary border border-primary/20 uppercase">
                     {faq.category}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-lg text-[9px] font-black tracking-wider bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase">
+                    🌐 {faq.language}
                   </span>
                   <span className={`px-2.5 py-0.5 rounded-lg text-[9px] font-black tracking-wider uppercase ${getPriorityBadgeStyles(faq.priority)}`}>
                     Priority: {faq.priority}
@@ -529,7 +562,13 @@ export default function FAQManager() {
                 </div>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setEditingFaq({ ...faq })}
+                    onClick={() =>
+                      setEditingFaq({
+                        ...faq,
+                        keywords: faq.keywords ? faq.keywords.join(', ') : '',
+                        tags: faq.tags ? faq.tags.join(', ') : '',
+                      })
+                    }
                     className="text-xs font-bold text-primary hover:underline cursor-pointer transition-all"
                   >
                     Edit
@@ -552,6 +591,32 @@ export default function FAQManager() {
                   className="text-xs text-muted leading-relaxed font-normal mt-1 prose dark:prose-invert"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(faq.answer) }}
                 />
+
+                {/* Keywords & Tags display */}
+                {(faq.keywords || faq.tags) && (
+                  <div className="flex flex-col gap-1.5 mt-3 pt-3 border-t border-border/50">
+                    {faq.keywords && faq.keywords.length > 0 && (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[9px] font-extrabold text-muted uppercase">Keywords:</span>
+                        {faq.keywords.map((k, i) => (
+                          <span key={i} className="px-1.5 py-0.5 rounded bg-secondary text-foreground text-[9px] font-medium border border-border">
+                            {k}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {faq.tags && faq.tags.length > 0 && (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[9px] font-extrabold text-muted uppercase">Tags:</span>
+                        {faq.tags.map((t, i) => (
+                          <span key={i} className="px-1.5 py-0.5 rounded bg-primary/5 text-primary text-[9px] font-bold border border-primary/10">
+                            #{t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </Card>
           ))
@@ -567,9 +632,9 @@ export default function FAQManager() {
             </h3>
 
             <form onSubmit={handleCreate} className="flex flex-col gap-4 overflow-y-auto pr-1 flex-1">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Category</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider font-sans">Category</label>
                   <select
                     value={newFaq.category}
                     onChange={(e) => setNewFaq((prev) => ({ ...prev, category: e.target.value }))}
@@ -580,6 +645,19 @@ export default function FAQManager() {
                     <option value="classes">Classes</option>
                     <option value="location">Location</option>
                     <option value="teachers">Teachers</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Language</label>
+                  <select
+                    value={newFaq.language}
+                    onChange={(e) => setNewFaq((prev) => ({ ...prev, language: e.target.value }))}
+                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground cursor-pointer"
+                  >
+                    <option value="hinglish">Hinglish</option>
+                    <option value="hi">Hindi</option>
+                    <option value="en">English</option>
                   </select>
                 </div>
 
@@ -603,11 +681,35 @@ export default function FAQManager() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g., What are the yoga fees? / फीस कितनी है?"
+                  placeholder="e.g. What are the yoga fees? / फीस कितनी है?"
                   value={newFaq.question}
                   onChange={(e) => setNewFaq((prev) => ({ ...prev, question: e.target.value }))}
                   className="h-11 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Keywords (comma separated)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. fee, price, cost"
+                    value={newFaq.keywords}
+                    onChange={(e) => setNewFaq((prev) => ({ ...prev, keywords: e.target.value }))}
+                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tags (comma separated)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. billing, pricing"
+                    value={newFaq.tags}
+                    onChange={(e) => setNewFaq((prev) => ({ ...prev, tags: e.target.value }))}
+                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
+                  />
+                </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -669,7 +771,7 @@ export default function FAQManager() {
             </h3>
 
             <form onSubmit={handleUpdate} className="flex flex-col gap-4 overflow-y-auto pr-1 flex-1">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Category</label>
                   <select
@@ -684,6 +786,21 @@ export default function FAQManager() {
                     <option value="classes">Classes</option>
                     <option value="location">Location</option>
                     <option value="teachers">Teachers</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Language</label>
+                  <select
+                    value={editingFaq.language}
+                    onChange={(e) =>
+                      setEditingFaq((prev) => (prev ? { ...prev, language: e.target.value } : null))
+                    }
+                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground cursor-pointer"
+                  >
+                    <option value="hinglish">Hinglish</option>
+                    <option value="hi">Hindi</option>
+                    <option value="en">English</option>
                   </select>
                 </div>
 
@@ -715,6 +832,32 @@ export default function FAQManager() {
                   }
                   className="h-11 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Keywords (comma separated)</label>
+                  <input
+                    type="text"
+                    value={editingFaq.keywords}
+                    onChange={(e) =>
+                      setEditingFaq((prev) => (prev ? { ...prev, keywords: e.target.value } : null))
+                    }
+                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tags (comma separated)</label>
+                  <input
+                    type="text"
+                    value={editingFaq.tags}
+                    onChange={(e) =>
+                      setEditingFaq((prev) => (prev ? { ...prev, tags: e.target.value } : null))
+                    }
+                    className="h-11 rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
+                  />
+                </div>
               </div>
 
               <div className="flex flex-col gap-1.5">

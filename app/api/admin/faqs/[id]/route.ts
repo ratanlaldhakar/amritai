@@ -13,9 +13,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       answer: body.answer,
       is_published: body.is_published,
       priority: Number(body.priority ?? 0),
+      keywords: body.keywords || null,
+      tags: body.tags || null,
+      language: body.language || 'en',
+      updated_by: body.updated_by || null,
+      embedding_status: body.embedding_status || 'pending',
     };
 
-    const updated = await db.faqs.update(id, updates);
+    const updated = await db.knowledge_base.update(id, updates);
     if (!updated) {
       return NextResponse.json(
         { success: false, error: 'FAQ not found or update failed' },
@@ -36,7 +41,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const success = await db.faqs.delete(id);
+    const success = await db.knowledge_base.delete(id);
     if (!success) {
       return NextResponse.json(
         { success: false, error: 'FAQ not found or deletion failed' },

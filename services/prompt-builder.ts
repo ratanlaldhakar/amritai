@@ -64,6 +64,12 @@ ${historyStr}
 Customer Name: ${customerName}
 Message: ${currentMessage}
 
+--- STAGE INSTRUCTION ---
+Read the CONVERSATION HISTORY carefully to check if the client has already provided their Name, Age, and Preferred Batch (Morning/Evening).
+1. If they have already provided their Name, Age, and Preferred Batch, do NOT ask for them again. Immediately output the booking tag at the end of your response:
+   [ACTION: BOOK_TRIAL | Name: (Name) | Age: (Age) | Batch: (Batch)]
+2. If any detail is missing, ask for it politely. Do not ask for details they have already given.
+
 --- YOUR RESPONSE ---
 `;
 }
